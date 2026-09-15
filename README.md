@@ -6,6 +6,7 @@ Je to program na kterém se učím základy javy.
 ## Co umí?
 - Přidat novou zakázku se všemi potřebnými informacemi o ni. (Kontrola platnosti informací)
 - Výpis zakázek po termínu odevzdání, všech zakázek, v určitém stavu.
+- posunutí stavu zakázky.
 
 ## Jak to spustit
 Je potřeba JDK 25, Maven.

@@ -1,18 +1,20 @@
 package org.example;
 
-import org.evidence;
-import org.zakazka;
+import org.Zakazka;
+import org.Evidence;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public class Main {
-    public void main(String[] args) {
+    public static void main(String[] args) {
         boolean bezi = true;
-        evidence evidence = new evidence();
+        Evidence evidence = new Evidence();
 
         while (bezi) {
+            vypisMenu();
+            try {
             switch (Integer.parseInt(IO.readln("Vyberte jednu z možností: "))) {
                 case 1:
                     bezi = false;
@@ -23,21 +25,28 @@ public class Main {
                 case 3:
                     vypisZakazky(evidence.getZakazka());
                     break;
+                case 4:
+                    evidence.posunoutStav();
+                    break;
                 default:
+                    IO.println("Nezadal jste ani jednu z možností.");
                     break;
 
+            }
+            } catch (NumberFormatException e) {
+                IO.println("Zadejte prosím číslo.");
             }
         }
     }
 
-    void vypisZakazky(List<zakazka> zakazka) {
+    static void vypisZakazky(List<Zakazka> zakazka) {
         DateTimeFormatter format = DateTimeFormatter.ofPattern("dd.MM.yyyy");
         IO.println("Pro vypsání celé evidence zakázek zmáčkněte 1.");
         IO.println("Pro vypsání zakázek v určitém stavu zmáčkněte 2.");
         IO.println("Pro vypsání zakázek po termínu, které ještě nejsou hotové zmáčkněte 3.");
-        switch (Integer.parseInt(IO.readln("Vae odpověď: "))) {
+        switch (Integer.parseInt(IO.readln("Vaše odpověď: "))) {
             case 1:
-                for (zakazka z : zakazka) {
+                for (Zakazka z : zakazka) {
                     vypisZakazku(z);
                 }
                 break;
@@ -46,45 +55,58 @@ public class Main {
                 IO.println("Pro vypsání zakázek ve stavu ROZPRACOVANO zmáčkněte 2.");
                 IO.println("Pro vypsání zakázek ve stavu HOTOVO zmáčkněte 3.");
                 IO.println("Pro vypsání zakázek ve stavu ZAPLACENO zmáčkněte 4.");
+                boolean najitaZakazka = true;
                 switch (Integer.parseInt(IO.readln("Váše odpověď: "))) {
                     case 1:
-                        for (zakazka z : zakazka) {
-                            if (z.stav() == stav.POPTAVKA) {
+                        for (Zakazka z : zakazka) {
+                            if (z.getStav() == Stav.POPTAVKA) {
+                                najitaZakazka = false;
                                 vypisZakazku(z);
                             }
                         }
                         break;
                     case 2:
-                        for (zakazka z : zakazka) {
-                            if (z.stav() == stav.ROZPRACOVÁNO) {
+                        for (Zakazka z : zakazka) {
+                            if (z.getStav() == Stav.ROZPRACOVÁNO) {
+                                najitaZakazka = false;
                                 vypisZakazku(z);
                             }
                         }
                         break;
                     case 3:
-                        for (zakazka z : zakazka) {
-                            if (z.stav() == stav.HOTOVO) {
+                        for (Zakazka z : zakazka) {
+                            if (z.getStav() == Stav.HOTOVO) {
+                                najitaZakazka = false;
                                 vypisZakazku(z);
                             }
                         }
                         break;
                     case 4:
-                        for (zakazka z : zakazka) {
-                            if (z.stav() == stav.ZAPLACENO) {
+                        for (Zakazka z : zakazka) {
+                            if (z.getStav() == Stav.ZAPLACENO) {
+                                najitaZakazka = false;
                                 vypisZakazku(z);
                             }
                         }
                         break;
                     default:
-                        IO.println("Nevybral jsi ani jedno z možností.");
+                        IO.println("Nevybral jsi ani jednu z možností.");
                         break;
+                }
+                if (najitaZakazka) {
+                    IO.println("Ani jedna zakázka není v tomto stavu.");
                 }
                 break;
             case 3:
-                for (zakazka z: zakazka) {
-                    if (z.odevzdani().isAfter(LocalDate.now())) {
+                boolean naslaZakazka = true;
+                for (Zakazka z: zakazka) {
+                    if (z.getOdevzdani().isBefore(LocalDate.now()) && z.getStav() != Stav.ZAPLACENO) {
+                        naslaZakazka = false;
                         vypisZakazku(z);
                     }
+                }
+                if (naslaZakazka) {
+                    IO.println("Žádná zakázka není po datumu odevzdání.");
                 }
                 break;
             default:
@@ -94,14 +116,22 @@ public class Main {
         }
 
     }
-    void vypisZakazku (zakazka z) {
+    static void vypisMenu () {
+        IO.println("Vitejte v menu:");
+        IO.println("Pro ukončení zmáčkněte 1");
+        IO.println("Pro přidání zakázky zmáčkněte 2");
+        IO.println("Pro výpis zakázek zmáčkněte 3");
+        IO.println("Pro změnu stavu zakázky zmáčkněte 4");
+    }
+
+    static void vypisZakazku (Zakazka z) {
         DateTimeFormatter format = DateTimeFormatter.ofPattern("dd.MM.yyyy");
-        IO.println("Jméno zákazníka: " + z.jmeno());
-        IO.println("Popis zakázky: " + z.popis());
-        IO.println("Stav zakázky: " + z.stav());
-        IO.println("Cena: " + z.cena() + " Kč");
-        IO.println("Datum zadání: " + z.vytvoreni().format(format));
-        IO.println("Datum odevzdání: " + z.odevzdani().format(format));
+        IO.println("Jméno zákazníka: " + z.getJmeno());
+        IO.println("Popis zakázky: " + z.getPopis());
+        IO.println("Stav zakázky: " + z.getStav());
+        IO.println("Cena: " + z.getCena() + " Kč");
+        IO.println("Datum zadání: " + z.getVytvoreni().format(format));
+        IO.println("Datum odevzdání: " + z.getOdevzdani().format(format));
     }
 }
 
