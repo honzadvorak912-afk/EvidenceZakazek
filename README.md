@@ -7,7 +7,10 @@ Je to program na kterém se učím základy javy.
 - Přidat novou zakázku se všemi potřebnými informacemi o ni. (Kontrola platnosti informací)
 - Výpis zakázek po termínu odevzdání, všech zakázek, v určitém stavu.
 - posunutí stavu zakázky.
-- Komzolové menu ze kterého se vše dá vyvolat.
+- Konzolové menu ze kterého se vše dá vyvolat.
+- Součet cen hotových, ale ještě nezaplacených zakázek.
+- Součet cen zaplacených zakázek.
+- Kolik zakázek je po termínu.
 
 ## Jak to spustit
 Je potřeba JDK 25, Maven.
@@ -31,8 +34,3 @@ Program je rozdělen do 3 souborů.
 - `zakazka` - vytvoření recordu pro záznam zakázek.
 
 ## Co dál
-- Změna stavu zakázky.
-- Kolik zakázek je v jednotlivých stavech.
-- Součet cen hotových, ale ještě nezaplacených zakázek.
-- Součet cen zaplacených zakázek.
-- Kolik zakázek je po termínu.

@@ -1,8 +1,4 @@
 package org.example;
-
-import org.Zakazka;
-import org.Evidence;
-
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -27,6 +23,15 @@ public class Main {
                     break;
                 case 4:
                     evidence.posunoutStav();
+                    break;
+                case 5:
+                    evidence.pocetZakazekVJednotlivemStavu();
+                    break;
+                case 6:
+                    evidence.soucetCenHOTOVYCHZakazek();
+                    break;
+                case 7:
+                    evidence.soucetCenZaplacenychZakazek();
                     break;
                 default:
                     IO.println("Nezadal jste ani jednu z možností.");
@@ -122,6 +127,9 @@ public class Main {
         IO.println("Pro přidání zakázky zmáčkněte 2");
         IO.println("Pro výpis zakázek zmáčkněte 3");
         IO.println("Pro změnu stavu zakázky zmáčkněte 4");
+        IO.println("Pro vypsání počtu zakázek v jednotlivém stavu zmáčkněte 5");
+        IO.println("Pro vypsání součtu cen hotových zakázek zmáčkněte 6");
+        IO.println("Pro vypsání součtu cen zaplacených zakázek zmáčkněte 7");
     }
 
     static void vypisZakazku (Zakazka z) {
