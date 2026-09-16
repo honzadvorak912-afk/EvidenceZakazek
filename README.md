@@ -11,6 +11,7 @@ Je to program na kterém se učím základy javy.
 - Součet cen hotových, ale ještě nezaplacených zakázek.
 - Součet cen zaplacených zakázek.
 - Kolik zakázek je po termínu.
+- Fukční testy 
 
 ## Jak to spustit
 Je potřeba JDK 25, Maven.
@@ -27,4 +28,3 @@ Program je rozdělen do 3 souborů.
 - `evidence` - vytváření zakázky,
 - `zakazka` - vytvoření recordu pro záznam zakázek.
 
-## Co dál
