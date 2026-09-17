@@ -13,50 +13,50 @@ public class Main {
         while (bezi) {
             vypisMenu();
             try {
-            switch (Integer.parseInt(IO.readln("Vyberte jednu z možností: "))) {
-                case 1:
-                    bezi = false;
-                    break;
-                case 2:
-                    evidence.pridatZakazku(infNovaZakazka());
-                    break;
-                case 3:
-                    vypisZakazky(evidence.getZakazka());
-                    break;
-                case 4:
-                    int cislo = evidence.posunoutStav(najitZakazku(evidence.getZakazka()));
-                    if (cislo != evidence.getZakazka().size()) {
-                        IO.println("Zakazka je ve stavu: " + evidence.getZakazka().get(cislo).getStav());
-                    }
-                    break;
-                case 5:
-                    int[] pocetZakazekVJednotlivemStavu = evidence.pocetZakazekVJednotlivemStavu();
-                    for (Stav s: Stav.values()) {
-                        IO.println("Zakázek ve stavu " + s + ": " + pocetZakazekVJednotlivemStavu[s.ordinal()]);
-                    }
-                    break;
-                case 6:
-                    vydelano = evidence.soucetCenHotovychZakazek();
-                    IO.println("Součet cen zaplacených zakázek činí: " + vydelano + " Kč");
-                    break;
-                case 7:
-                    vydelano = evidence.soucetCenZaplacenychZakazek();
-                    IO.println("Součet cen zaplacených zakázek činí: " + vydelano + " Kč");
-                    break;
-                case 8:
-                    vydelano = evidence.soucetZakazekPoTerminu();
-                    IO.println("Zakázek po termínu odevzdání: " + vydelano);
-                    break;
-                case 9:
-                    if (evidence.zrusZakazku(Main.najitZakazku(evidence.getZakazka())) == 1) {
-                        IO.println("Zakázka byla zrušena.");
-                    }
-                    break;
-                default:
-                    IO.println("Nezadal jste ani jednu z možností.");
-                    break;
+                switch (Integer.parseInt(IO.readln("Vyberte jednu z možností: "))) {
+                    case 1:
+                        bezi = false;
+                        break;
+                    case 2:
+                        evidence.pridatZakazku(infNovaZakazka());
+                        break;
+                    case 3:
+                        vypisZakazky(evidence.getZakazka());
+                        break;
+                    case 4:
+                        int cislo = evidence.posunoutStav(najitZakazku(evidence.getZakazka()));
+                        if (cislo != -1) {
+                            IO.println("Zakazka je ve stavu: " + evidence.getZakazka().get(cislo).getStav());
+                        }
+                        break;
+                    case 5:
+                        int[] pocetZakazekVJednotlivemStavu = evidence.pocetZakazekVJednotlivemStavu();
+                        for (Stav s : Stav.values()) {
+                            IO.println("Zakázek ve stavu " + s + ": " + pocetZakazekVJednotlivemStavu[s.ordinal()]);
+                        }
+                        break;
+                    case 6:
+                        vydelano = evidence.soucetCenHotovychZakazek();
+                        IO.println("Součet cen zaplacených zakázek činí: " + vydelano + " Kč");
+                        break;
+                    case 7:
+                        vydelano = evidence.soucetCenZaplacenychZakazek();
+                        IO.println("Součet cen zaplacených zakázek činí: " + vydelano + " Kč");
+                        break;
+                    case 8:
+                        vydelano = evidence.soucetZakazekPoTerminu();
+                        IO.println("Zakázek po termínu odevzdání: " + vydelano);
+                        break;
+                    case 9:
+                        if (evidence.zrusZakazku(Main.najitZakazku(evidence.getZakazka())) == 1) {
+                            IO.println("Zakázka byla zrušena.");
+                        }
+                        break;
+                    default:
+                        IO.println("Nezadal jste ani jednu z možností.");
+                        break;
 
-            }
+                }
             } catch (NumberFormatException e) {
                 IO.println("Zadejte prosím číslo.");
             }
@@ -64,6 +64,8 @@ public class Main {
     }
 
     static void vypisZakazky(List<Zakazka> zakazka) {
+        boolean najitaZakazka = true;
+        try {
         DateTimeFormatter format = DateTimeFormatter.ofPattern("dd.MM.yyyy");
         IO.println("Pro vypsání celé evidence zakázek zmáčkněte 1.");
         IO.println("Pro vypsání zakázek v určitém stavu zmáčkněte 2.");
@@ -72,6 +74,7 @@ public class Main {
             case 1:
                 for (Zakazka z : zakazka) {
                     vypisZakazku(z);
+                    najitaZakazka = false;
                 }
                 break;
             case 2:
@@ -79,7 +82,6 @@ public class Main {
                 IO.println("Pro vypsání zakázek ve stavu ROZPRACOVANO zmáčkněte 2.");
                 IO.println("Pro vypsání zakázek ve stavu HOTOVO zmáčkněte 3.");
                 IO.println("Pro vypsání zakázek ve stavu ZAPLACENO zmáčkněte 4.");
-                boolean najitaZakazka = true;
                 switch (Integer.parseInt(IO.readln("Váše odpověď: "))) {
                     case 1:
                         for (Zakazka z : zakazka) {
@@ -117,30 +119,30 @@ public class Main {
                         IO.println("Nevybral jsi ani jednu z možností.");
                         break;
                 }
-                if (najitaZakazka) {
-                    IO.println("Ani jedna zakázka není v tomto stavu.");
-                }
                 break;
             case 3:
-                boolean naslaZakazka = true;
-                for (Zakazka z: zakazka) {
+                for (Zakazka z : zakazka) {
                     if (z.getOdevzdani().isBefore(LocalDate.now()) && z.getStav() != Stav.ZAPLACENO) {
-                        naslaZakazka = false;
+                        najitaZakazka = false;
                         vypisZakazku(z);
                     }
-                }
-                if (naslaZakazka) {
-                    IO.println("Žádná zakázka není po datumu odevzdání.");
                 }
                 break;
             default:
                 IO.println("Nevybral jste ani jednu z možností.");
                 break;
-
         }
-
+        } catch (NumberFormatException e) {
+            IO.println("Nezadal jste číslo.");
+        } catch (IllegalArgumentException e) {
+            IO.println(e.getMessage());
+        }
+        if (najitaZakazka) {
+            IO.println("Žádná zakázka nebyla nalezena.");
+        }
     }
-    static void vypisMenu () {
+
+    static void vypisMenu() {
         IO.println("Vitejte v menu:");
         IO.println("Pro ukončení zmáčkněte 1");
         IO.println("Pro přidání zakázky zmáčkněte 2");
@@ -153,7 +155,7 @@ public class Main {
         IO.println("Pro zrušení zakázky zmáčkněte 9");
     }
 
-    static void vypisZakazku (Zakazka z) {
+    static void vypisZakazku(Zakazka z) {
         DateTimeFormatter format = DateTimeFormatter.ofPattern("dd.MM.yyyy");
         IO.println("Jméno zákazníka: " + z.getJmeno());
         IO.println("Popis zakázky: " + z.getPopis());
@@ -163,23 +165,30 @@ public class Main {
         IO.println("Datum odevzdání: " + z.getOdevzdani().format(format));
     }
 
-    static int najitZakazku (List<Zakazka> zakazka) {
-        String jmeno = IO.readln("Zadejte jméno na zakázce kterou chcete upravit: ");
-        for (int i = 0; i < zakazka.size(); i++) {
-            if (jmeno.equals(zakazka.get(i).getJmeno())) {
-                vypisZakazku(zakazka.get(i));
-                IO.println("Pokud se jedná o zakázku kterou jste chtěl upravit, zmáčkněte 1.");
-                IO.println("Pokud se nejedná o zakázku kterou jste chtěl upravit, zmáčkněte 2.");
-                if (Integer.parseInt(IO.readln("Vaše odpověď: ")) == 1) {
-                    return i;
+    static int najitZakazku(List<Zakazka> zakazka) {
+        try {
+            String jmeno = IO.readln("Zadejte jméno na zakázce kterou chcete upravit: ");
+            for (int i = 0; i < zakazka.size(); i++) {
+                if (jmeno.equals(zakazka.get(i).getJmeno())) {
+                    vypisZakazku(zakazka.get(i));
+                    IO.println("Pokud se jedná o zakázku kterou jste chtěl upravit, zmáčkněte 1.");
+                    IO.println("Pokud se nejedná o zakázku kterou jste chtěl upravit, zmáčkněte 2.");
+                    if (Integer.parseInt(IO.readln("Vaše odpověď: ")) == 1) {
+                        return i;
+                    }
                 }
             }
+            IO.println("Nebyla nalezena žádná zakázka.");
+            return -1;
+        } catch (NumberFormatException e) {
+            IO.println("Nezadal jste číslo.");
+        } catch (IllegalArgumentException e) {
+            IO.println(e.getMessage());
         }
-        IO.println("Nebyla nalezena žádná zakázka.");
-        return zakazka.size();
+        return -1;
     }
 
-    static Zakazka infNovaZakazka () {
+    static Zakazka infNovaZakazka() {
         DateTimeFormatter format = DateTimeFormatter.ofPattern("dd.MM.yyyy");
         try {
             String jmeno = IO.readln("Zadej jméno zákazníka: ");

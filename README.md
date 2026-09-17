@@ -11,7 +11,7 @@ Je to program na kterém se učím základy javy.
 - Součet cen hotových, ale ještě nezaplacených zakázek.
 - Součet cen zaplacených zakázek.
 - Kolik zakázek je po termínu.
-- Fukční testy 
+- Fukční testy
 
 ## Jak to spustit
 Je potřeba JDK 25, Maven.
@@ -21,6 +21,12 @@ mvn exec:java -Dexec.mainClass=org.example.org.Main
 ```
 Nebo otevřít projekt v IntelliJ a spustit třídu `org.Main`.
 Maven výstup bufferuje, takže se výzvy k zadání mohou zobrazit až po odeslání vstupu. Pohodlnější je spustit třídu org.Main přímo z IntelliJ.
+
+## Testy
+Jsou to automatické jednotkové testy: samy zavolají metody, samy ověří výsledky a samy oznámí, co neklape.
+```
+mvn test
+```
 
 ## Struktura
 Program je rozdělen do 3 souborů.
