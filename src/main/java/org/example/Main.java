@@ -93,7 +93,7 @@ public class Main {
                         break;
                     case 2:
                         for (Zakazka z : zakazka) {
-                            if (z.getStav() == Stav.ROZPRACOVÁNO) {
+                            if (z.getStav() == Stav.ROZPRACOVANO) {
                                 najitaZakazka = false;
                                 vypisZakazku(z);
                             }
@@ -122,7 +122,7 @@ public class Main {
                 break;
             case 3:
                 for (Zakazka z : zakazka) {
-                    if (z.getOdevzdani().isBefore(LocalDate.now()) && z.getStav() != Stav.ZAPLACENO) {
+                    if (z.getOdevzdani().isBefore(LocalDate.now()) && z.getStav() != Stav.ZAPLACENO && z.getStav() != Stav.HOTOVO) {
                         najitaZakazka = false;
                         vypisZakazku(z);
                     }
@@ -198,7 +198,7 @@ public class Main {
                 throw new IllegalArgumentException("Popis nesmí být prázdný.");
             }
             int cena = Integer.parseInt(IO.readln("Odhadovaná cena: "));
-            if (cena < 0) {
+            if (cena <= 0) {
                 throw new IllegalArgumentException("Cena nesmí být záporná.");
             }
             LocalDate datumZadání = LocalDate.now();
