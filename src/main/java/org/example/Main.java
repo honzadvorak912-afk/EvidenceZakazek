@@ -37,7 +37,7 @@ public class Main {
                         break;
                     case 6:
                         vydelano = evidence.soucetCenHotovychZakazek();
-                        IO.println("Součet cen zaplacených zakázek činí: " + vydelano + " Kč");
+                        IO.println("Součet cen hotových zakázek činí: " + vydelano + " Kč");
                         break;
                     case 7:
                         vydelano = evidence.soucetCenZaplacenychZakazek();
@@ -182,8 +182,6 @@ public class Main {
             return -1;
         } catch (NumberFormatException e) {
             IO.println("Nezadal jste číslo.");
-        } catch (IllegalArgumentException e) {
-            IO.println(e.getMessage());
         }
         return -1;
     }
@@ -200,13 +198,16 @@ public class Main {
                 throw new IllegalArgumentException("Popis nesmí být prázdný.");
             }
             int cena = Integer.parseInt(IO.readln("Odhadovaná cena: "));
+            if (cena < 0) {
+                throw new IllegalArgumentException("Cena nesmí být záporná.");
+            }
             LocalDate datumZadání = LocalDate.now();
             LocalDate datumOdevzdání = LocalDate.parse(IO.readln("Zadej datum odevzdání ve tvaru (dd.MM.yyyy): "), format);
             if (datumOdevzdání.isBefore(datumZadání)) {
                 throw new IllegalArgumentException("Datum odevzdání nemůže být před datem zadání.");
             }
             Stav stav = org.example.Stav.POPTAVKA;
-            Zakazka zakazka = new Zakazka(jmeno, popis, cena, datumZadání, stav, datumZadání);
+            Zakazka zakazka = new Zakazka(jmeno, popis, cena, datumZadání, stav, datumOdevzdání);
             IO.println("Úspěšně jste přidal novou zakázku.");
             return zakazka;
         } catch (NumberFormatException e) {

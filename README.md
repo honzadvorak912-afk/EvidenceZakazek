@@ -17,7 +17,7 @@ Je to program na kterém se učím základy javy.
 Je potřeba JDK 25, Maven.
 ```
 mvn compile
-mvn exec:java -Dexec.mainClass=org.example.org.Main
+mvn exec:java -Dexec.mainClass=org.example.Main
 ```
 Nebo otevřít projekt v IntelliJ a spustit třídu `org.Main`.
 Maven výstup bufferuje, takže se výzvy k zadání mohou zobrazit až po odeslání vstupu. Pohodlnější je spustit třídu org.Main přímo z IntelliJ.
