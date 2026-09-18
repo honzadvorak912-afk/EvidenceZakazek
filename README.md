@@ -19,7 +19,7 @@ Je potřeba JDK 25, Maven.
 mvn compile
 mvn exec:java -Dexec.mainClass=org.example.Main
 ```
-Nebo otevřít projekt v IntelliJ a spustit třídu `org.Main`.
+Nebo otevřít projekt v IntelliJ a spustit třídu `org.example.Main`.
 Maven výstup bufferuje, takže se výzvy k zadání mohou zobrazit až po odeslání vstupu. Pohodlnější je spustit třídu org.Main přímo z IntelliJ.
 
 ## Testy
@@ -33,4 +33,5 @@ Program je rozdělen do 3 souborů.
 - `main` - vstupní bod, 
 - `evidence` - vytváření zakázky,
 - `zakazka` - vytvoření recordu pro záznam zakázek.
+- `Stav` - vytvoření enumu pro stavy zakázek
 
