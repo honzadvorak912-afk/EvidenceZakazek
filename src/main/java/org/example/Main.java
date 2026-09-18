@@ -5,9 +5,9 @@ import java.time.format.DateTimeParseException;
 import java.util.List;
 
 public class Main {
-    public static void main(String[] args) {
+    static void main(String[] args) {
         boolean bezi = true;
-        int vydelano = 0;
+        int vydelano;
         Evidence evidence = new Evidence();
 
         while (bezi) {
@@ -48,7 +48,7 @@ public class Main {
                         IO.println("Zakázek po termínu odevzdání: " + vydelano);
                         break;
                     case 9:
-                        if (evidence.zrusZakazku(Main.najitZakazku(evidence.getZakazka())) == 1) {
+                        if (evidence.zrusZakazku(najitZakazku(evidence.getZakazka())) == 1) {
                             IO.println("Zakázka byla zrušena.");
                         }
                         break;
@@ -143,7 +143,7 @@ public class Main {
     }
 
     static void vypisMenu() {
-        IO.println("Vitejte v menu:");
+        IO.println("Vítejte v menu:");
         IO.println("Pro ukončení zmáčkněte 1");
         IO.println("Pro přidání zakázky zmáčkněte 2");
         IO.println("Pro výpis zakázek zmáčkněte 3");
@@ -190,31 +190,15 @@ public class Main {
         DateTimeFormatter format = DateTimeFormatter.ofPattern("dd.MM.yyyy");
         try {
             String jmeno = IO.readln("Zadej jméno zákazníka: ");
-            if (jmeno.isBlank()) {
-                throw new IllegalArgumentException("Jméno klienta nesmí být prázdné.");
-            }
             String popis = IO.readln("Popiš co je potřeba opravit: ");
-            if (popis.isBlank()) {
-                throw new IllegalArgumentException("Popis nesmí být prázdný.");
-            }
             int cena = Integer.parseInt(IO.readln("Odhadovaná cena: "));
-            if (cena <= 0) {
-                throw new IllegalArgumentException("Cena nesmí být záporná.");
-            }
             LocalDate datumZadání = LocalDate.now();
             LocalDate datumOdevzdání = LocalDate.parse(IO.readln("Zadej datum odevzdání ve tvaru (dd.MM.yyyy): "), format);
-            if (datumOdevzdání.isBefore(datumZadání)) {
-                throw new IllegalArgumentException("Datum odevzdání nemůže být před datem zadání.");
-            }
-            Stav stav = org.example.Stav.POPTAVKA;
+            Stav stav = Stav.POPTAVKA;
             Zakazka zakazka = new Zakazka(jmeno, popis, cena, datumZadání, stav, datumOdevzdání);
-            IO.println("Úspěšně jste přidal novou zakázku.");
             return zakazka;
         } catch (NumberFormatException e) {
             IO.println("Cena nesmí být nevyplněná a musí být zapsána číselně.");
-            return null;
-        } catch (IllegalArgumentException e) {
-            IO.println(e.getMessage());
             return null;
         } catch (DateTimeParseException e) {
             IO.println("Zadal jsi neplatné datum.");
