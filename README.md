@@ -12,6 +12,7 @@ Je to program na kterém se učím základy javy.
 - Součet cen zaplacených zakázek.
 - Kolik zakázek je po termínu.
 - Fukční testy
+- Funkční okno přes které lze program ovládat
 
 ## Jak to spustit
 Je potřeba JDK 25, Maven.
@@ -34,4 +35,5 @@ Program je rozdělen do 3 souborů.
 - `evidence` - vytváření zakázky,
 - `zakazka` - vytvoření recordu pro záznam zakázek.
 - `Stav` - vytvoření enumu pro stavy zakázek
+- `oknoEvidence` - okno přes které lze program ovládat
 
