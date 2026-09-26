@@ -11,17 +11,21 @@ Je to program na kterém se učím základy javy.
 - Součet cen hotových, ale ještě nezaplacených zakázek.
 - Součet cen zaplacených zakázek.
 - Kolik zakázek je po termínu.
-- Fukční testy
-- Funkční okno přes které lze program ovládat
+- Zrušení zakázky
+- Funkční testy
+- Funkční okno přes které lze program ovládat.
+- Každá zakázka má svoje číslo, které se ukazuje ve výpisu a zadává při rušení a posunu stavu.
 
 ## Jak to spustit
 Je potřeba JDK 25, Maven.
+Konzolová verze: třída `org.example.Main`
 ```
-mvn compile
 mvn exec:java -Dexec.mainClass=org.example.Main
 ```
+Okenní verze: třída `org.example.oknoEvidence`
+
 Nebo otevřít projekt v IntelliJ a spustit třídu `org.example.Main`.
-Maven výstup bufferuje, takže se výzvy k zadání mohou zobrazit až po odeslání vstupu. Pohodlnější je spustit třídu org.Main přímo z IntelliJ.
+Maven výstup bufferuje, takže se výzvy k zadání mohou zobrazit až po odeslání vstupu. Pohodlnější je spustit třídu org.example.Main přímo z IntelliJ.
 
 ## Testy
 Jsou to automatické jednotkové testy: samy zavolají metody, samy ověří výsledky a samy oznámí, co neklape.
@@ -30,10 +34,9 @@ mvn test
 ```
 
 ## Struktura
-Program je rozdělen do 3 souborů.
 - `main` - vstupní bod, 
-- `evidence` - vytváření zakázky,
-- `zakazka` - vytvoření recordu pro záznam zakázek.
+- `evidence` - drží všechny zakázky, přiděluje jim id a vynucuje pravidla
+- `zakazka` - třída s privátními atributy a gettery
 - `Stav` - vytvoření enumu pro stavy zakázek
 - `oknoEvidence` - okno přes které lze program ovládat
 
