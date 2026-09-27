@@ -1,6 +1,5 @@
 package org.example;
 
-import com.sun.tools.javac.Main;
 
 import java.time.Clock;
 import java.time.LocalDate;
@@ -33,7 +32,7 @@ public class Evidence {
                 throw new IllegalArgumentException("Datum odevzdání nemůže být před datem zadání.");
             }
             int cislo = key++;
-            Zakazka novaZakazka = new Zakazka(cislo, jmeno, popis, cena, Stav.POPTAVKA, LocalDate.now(), odevzdani);
+            Zakazka novaZakazka = new Zakazka(cislo, jmeno, popis, cena, Stav.POPTAVKA, LocalDate.now(hodiny), odevzdani);
             zakazka.put(cislo, novaZakazka);
                 return cislo;
     }

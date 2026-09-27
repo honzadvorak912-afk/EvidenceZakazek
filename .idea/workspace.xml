@@ -4,8 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a3a82924-e7ff-4e50-9006-e34c76c00bf8" name="Changes" comment="opraveni README">
+    <list default="true" id="a3a82924-e7ff-4e50-9006-e34c76c00bf8" name="Changes" comment="oprava JFramu kvuli přechodu na Map z ArrayListu">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/Evidence.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/Evidence.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/org/example/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/org/example/oknoEvidence.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/org/example/oknoEvidence.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/test/java/org/example/ZakazkaTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/org/example/ZakazkaTest.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -44,60 +48,61 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Application.Main.executor&quot;: &quot;Run&quot;,
-    &quot;Application.oknoEvidence.executor&quot;: &quot;Run&quot;,
-    &quot;Downloaded.Files.Path.Enabled&quot;: &quot;false&quot;,
-    &quot;JUnit.EvidenceTest.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.EvidenceTest.neexistujiciId.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.EvidenceTest.posunZeZaplacenoTest.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.EvidenceTest.posunoutStavTest.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.EvidenceTest.pridaniZakazkyTest.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.EvidenceTest.soucetCenHotovychZakazekTest.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.EvidenceTest.soucetCenZaplacenychZakazekTest.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.EvidenceTest.soucetZakazekPoTerminuTest.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.EvidenceTest.zakazkaSNeplatnouHodnotouSeNepridala.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.EvidenceTest.zakazkaSPrazdnymJmenemSeNepridala.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.EvidenceTest.zruseniHotoveNeboZaplaceneZakazkyTest.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.EvidenceTest.zruseniZakazkyNezmeniId.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.EvidenceTest.zruseniZaplaceneZakazkyTest.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.ZakazkaTest.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.ZakazkaTest.posunoutStavTest.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.ZakazkaTest.soucetCenHotovychZakazekTest.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.ZakazkaTest.soucetCenZaplacenychZakazekTest.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.ZakazkaTest.soucetZakazekPoTerminuTest.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.ZakazkaTest.soucetZakazekVJednotlivemStavuTest.executor&quot;: &quot;Run&quot;,
-    &quot;JUnit.ZakazkaTest.zruseniZakazkyTest.executor&quot;: &quot;Run&quot;,
-    &quot;Maven. [test].executor&quot;: &quot;Run&quot;,
-    &quot;Maven.EvidenceZakazek [test].executor&quot;: &quot;Run&quot;,
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;Repository.Attach.Annotations&quot;: &quot;false&quot;,
-    &quot;Repository.Attach.JavaDocs&quot;: &quot;false&quot;,
-    &quot;Repository.Attach.Sources&quot;: &quot;false&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
-    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/jandv/IdeaProjects/EvidenceZakazek - kopie&quot;,
-    &quot;node.js.detected.package.jshint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.jshint&quot;: &quot;&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;onboarding.tips.debug.path&quot;: &quot;C:/Users/jandv/IdeaProjects/EvidenceZakazek/src/main/java/org/example/Main.java&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;MavenSettings&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Application.Main.executor": "Run",
+    "Application.oknoEvidence.executor": "Run",
+    "Downloaded.Files.Path.Enabled": "false",
+    "JUnit.EvidenceTest.executor": "Run",
+    "JUnit.EvidenceTest.neexistujiciId.executor": "Run",
+    "JUnit.EvidenceTest.posunZeZaplacenoNejdeUzivatelDostaneZpravu.executor": "Run",
+    "JUnit.EvidenceTest.posunZeZaplacenoTest.executor": "Run",
+    "JUnit.EvidenceTest.posunoutStavTest.executor": "Run",
+    "JUnit.EvidenceTest.pridaniZakazkyTest.executor": "Run",
+    "JUnit.EvidenceTest.soucetCenHotovychZakazekTest.executor": "Run",
+    "JUnit.EvidenceTest.soucetCenZaplacenychZakazekTest.executor": "Run",
+    "JUnit.EvidenceTest.soucetZakazekPoTerminuTest.executor": "Run",
+    "JUnit.EvidenceTest.zakazkaSNeplatnouHodnotouSeNepridala.executor": "Run",
+    "JUnit.EvidenceTest.zakazkaSPrazdnymJmenemSeNepridala.executor": "Run",
+    "JUnit.EvidenceTest.zruseniHotoveNeboZaplaceneZakazkyTest.executor": "Run",
+    "JUnit.EvidenceTest.zruseniZakazkyNezmeniId.executor": "Run",
+    "JUnit.EvidenceTest.zruseniZaplaceneZakazkyTest.executor": "Run",
+    "JUnit.ZakazkaTest.executor": "Run",
+    "JUnit.ZakazkaTest.posunoutStavTest.executor": "Run",
+    "JUnit.ZakazkaTest.soucetCenHotovychZakazekTest.executor": "Run",
+    "JUnit.ZakazkaTest.soucetCenZaplacenychZakazekTest.executor": "Run",
+    "JUnit.ZakazkaTest.soucetZakazekPoTerminuTest.executor": "Run",
+    "JUnit.ZakazkaTest.soucetZakazekVJednotlivemStavuTest.executor": "Run",
+    "JUnit.ZakazkaTest.zruseniZakazkyTest.executor": "Run",
+    "Maven. [test].executor": "Run",
+    "Maven.EvidenceZakazek [test].executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "Repository.Attach.Annotations": "false",
+    "Repository.Attach.JavaDocs": "false",
+    "Repository.Attach.Sources": "false",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
+    "codeWithMe.voiceChat.enabledByDefault": "false",
+    "git-widget-placeholder": "main",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "C:/Users/jandv/IdeaProjects/EvidenceZakazek - kopie",
+    "node.js.detected.package.jshint": "true",
+    "node.js.selected.package.jshint": "",
+    "nodejs_package_manager_path": "npm",
+    "onboarding.tips.debug.path": "C:/Users/jandv/IdeaProjects/EvidenceZakazek/src/main/java/org/example/Main.java",
+    "project.structure.last.edited": "Modules",
+    "project.structure.proportion": "0.0",
+    "project.structure.side.proportion": "0.0",
+    "settings.editor.selected.configurable": "MavenSettings"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="MoveClassesOrPackagesDialog.RECENTS_KEY">
       <recent name="org.example" />
     </key>
   </component>
-  <component name="RunManager" selected="Application.oknoEvidence">
+  <component name="RunManager" selected="JUnit.EvidenceTest.posunZeZaplacenoNejdeUzivatelDostaneZpravu">
     <configuration default="true" type="Application" factoryName="Application">
       <module name="EvidenceZakazek" />
       <option name="VM_PARAMETERS" value="-Dstdin.encoding=UTF-8" />
@@ -156,6 +161,22 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration name="EvidenceTest.posunZeZaplacenoNejdeUzivatelDostaneZpravu" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="EvidenceZakazek" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="org.example.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="org.example" />
+      <option name="MAIN_CLASS_NAME" value="org.example.EvidenceTest" />
+      <option name="METHOD_NAME" value="posunZeZaplacenoNejdeUzivatelDostaneZpravu" />
+      <option name="TEST_OBJECT" value="method" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="EvidenceTest.posunZeZaplacenoTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="EvidenceZakazek" />
       <extension name="coverage">
@@ -172,29 +193,13 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="EvidenceTest.posunoutStavTest" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="EvidenceZakazek" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="org.example.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <option name="PACKAGE_NAME" value="org.example" />
-      <option name="MAIN_CLASS_NAME" value="org.example.EvidenceTest" />
-      <option name="METHOD_NAME" value="posunoutStavTest" />
-      <option name="TEST_OBJECT" value="method" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Application.oknoEvidence" />
+        <item itemvalue="JUnit.EvidenceTest.posunZeZaplacenoNejdeUzivatelDostaneZpravu" />
         <item itemvalue="Application.Main" />
+        <item itemvalue="Application.oknoEvidence" />
         <item itemvalue="JUnit.EvidenceTest.neexistujiciId" />
         <item itemvalue="JUnit.EvidenceTest.posunZeZaplacenoTest" />
-        <item itemvalue="JUnit.EvidenceTest.posunoutStavTest" />
       </list>
     </recent_temporary>
   </component>
@@ -243,7 +248,8 @@
     <MESSAGE value="aktualizace README" />
     <MESSAGE value="prejiti z ArrayListu na Map a přidání testů" />
     <MESSAGE value="opraveni README" />
-    <option name="LAST_COMMIT_MESSAGE" value="opraveni README" />
+    <MESSAGE value="oprava JFramu kvuli přechodu na Map z ArrayListu" />
+    <option name="LAST_COMMIT_MESSAGE" value="oprava JFramu kvuli přechodu na Map z ArrayListu" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

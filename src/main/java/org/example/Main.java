@@ -1,6 +1,5 @@
 package org.example;
 
-import java.time.Clock;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -26,10 +25,8 @@ public class Main {
                         vypisZakazky(evidence.getZakazka());
                         break;
                     case 4:
-                        boolean hotovo = evidence.posunoutStav(najitZakazku(evidence.getZakazka()));
-                        if (!hotovo) {
-                            IO.println("Zakazku nebylo možné posunout.");
-                        }
+                        int cislo1 = najitZakazku(evidence.getZakazka(), IO.readln("Zadejte id zakázky: "), new KonzolovyVystup());
+                        if (cislo1 != -1) {posunStav(new KonzolovyVystup(), evidence, cislo1);}
                         break;
                     case 5:
                         Map<Stav, Integer> pocetZakazekVJednotlivemStavu = evidence.pocetZakazekVJednotlivemStavu();
@@ -50,11 +47,8 @@ public class Main {
                         IO.println("Zakázek po termínu odevzdání: " + vydelano);
                         break;
                     case 9:
-                        if (evidence.zrusZakazku(najitZakazku(evidence.getZakazka()))) {
-                            IO.println("Zakázka byla zrušena.");
-                        } else {
-                            IO.println("Zakázku nebylo možné zrušit.");
-                        }
+                        int cislo2 = najitZakazku(evidence.getZakazka(), IO.readln("Zadejte id zakázky: "), new KonzolovyVystup());
+                        if (cislo2 != -1) {zrusZakazku(new KonzolovyVystup(), evidence, cislo2);}
                         break;
                     default:
                         IO.println("Nezadal jste ani jednu z možností.");
@@ -64,6 +58,22 @@ public class Main {
             } catch (NumberFormatException e) {
                 IO.println("Zadejte prosím číslo.");
             }
+        }
+    }
+
+    static void zrusZakazku (Vystup vystup, Evidence evidence, int id) {
+        if (evidence.zrusZakazku(id)) {
+            vystup.zobraz("Zakázka byla zrušena.");
+        } else {
+            vystup.zobraz("Zakázku nebylo možné zrušit.");
+        }
+    }
+
+    static void posunStav (Vystup vystup, Evidence evidence, int id) {
+        if (evidence.posunoutStav(id)) {
+            vystup.zobraz("Zakázka byla posunuta.");
+        } else {
+            vystup.zobraz("Zakázku nebylo možné posunout.");
         }
     }
 
@@ -170,16 +180,16 @@ public class Main {
         IO.println("Datum odevzdání: " + z.getOdevzdani().format(format));
     }
 
-    static int najitZakazku(Map<Integer, Zakazka> zakazka) {
+    static int najitZakazku(Map<Integer, Zakazka> zakazka, String id, Vystup vystup) {
         try {
-            int cislo = Integer.parseInt(IO.readln("Zadej id zakázky: "));
+            int cislo = Integer.parseInt(id);
             if (zakazka.containsKey(cislo)) {
                 return cislo;
             }
-            IO.println("Nebyla nalezena žádná zakázka.");
+            vystup.zobraz("Nebyla nalezena žádná zakázka.");
             return -1;
         } catch (NumberFormatException e) {
-            IO.println("Nezadal jste číslo.");
+            vystup.zobraz("Nezadal jste číslo.");
         }
         return -1;
     }

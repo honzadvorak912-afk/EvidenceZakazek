@@ -5,8 +5,6 @@ import java.awt.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class oknoEvidence {
@@ -119,7 +117,6 @@ public class oknoEvidence {
             stredKarty.show(stred, "pridatZakazkuPanel");
         });
 
-        int key = 0;
         potvrditPridatZakazku.addActionListener(e -> {
             try {
                 String jmeno = jmenoPridatZakazku.getText();
@@ -155,17 +152,9 @@ public class oknoEvidence {
         });
 
         hledatZakazku.addActionListener(e -> {
-            try {
-                boolean ok = evidence.zrusZakazku(Integer.parseInt(jmenoHledaneZakazky.getText()));
-                if (!ok) {
-                    JOptionPane.showMessageDialog(okno, "Zakázka nebyla nalezena");
-                } else {
-                    JOptionPane.showMessageDialog(okno, "Zakázka byla zrušena");
-                }
-                jmenoHledaneZakazky.setText("");
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(okno, "Nezadal jste číslo.");
-            }
+            int cislo = Main.najitZakazku(evidence.getZakazka(), jmenoHledaneZakazky.getText(), new OknovyVystup());
+            if (cislo != -1) {Main.zrusZakazku(new OknovyVystup(), evidence, cislo);}
+            jmenoHledaneZakazky.setText("");
         });
 
         //ZMĚNIT STAV ZAKAZKY
@@ -182,17 +171,9 @@ public class oknoEvidence {
         });
 
         zmenit.addActionListener(e -> {
-            try {
-                boolean ok = evidence.posunoutStav(Integer.parseInt(jmenoHledaneZakazky2.getText()));
-                if (!ok) {
-                    JOptionPane.showMessageDialog(okno, "Zakázka nebyla nalezena nebo nebylo možné ji posunout.");
-                } else {
-                    JOptionPane.showMessageDialog(okno, "Zákázka byla posunuta.");
-                }
-                jmenoHledaneZakazky2.setText("");
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(okno, "Nezadal jste číslo.");
-            }
+            int cislo = Main.najitZakazku(evidence.getZakazka(), jmenoHledaneZakazky2.getText(), new OknovyVystup());
+            if (cislo != -1) {Main.posunStav(new OknovyVystup(), evidence, cislo);}
+            jmenoHledaneZakazky2.setText("");
         });
 
         //POCET ZAKÁZEK V JEDNOTLIVÉM STAVU

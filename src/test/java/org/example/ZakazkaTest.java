@@ -3,16 +3,17 @@ package org.example;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
+import java.awt.*;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
 
 class EvidenceTest {
     @Test
-
     void posunoutStavTest () {
         String jmeno = "pepa";
         String popis = "kolo";
@@ -156,7 +157,7 @@ class EvidenceTest {
         assertEquals(1, evidence.getZakazka().size());
     }
     @Test
-    void zakazkaSNeplatnouHodnotouSeNepridala () {
+    void zakazkaSNeplatnouHodnotouSeNepridalaTest () {
         String jmenoSpatne = "";
         String jmeno = "pepa";
         String popisSpatne = "";
@@ -173,7 +174,7 @@ class EvidenceTest {
         assertEquals(0, evidence.getZakazka().size());
     }
     @Test
-    void zruseniZakazkyNezmeniId () {
+    void zruseniZakazkyNezmeniIdTest () {
         String jmeno = "pepa";
         String popis = "kolo";
         int cena = 500;
@@ -194,7 +195,7 @@ class EvidenceTest {
         assertFalse(evidence.getZakazka().containsKey(2));
     }
     @Test
-    void neexistujiciId () {
+    void neexistujiciIdTest () {
         String jmeno = "pepa";
         String popis = "kolo";
         int cena = 500;
@@ -205,5 +206,21 @@ class EvidenceTest {
         assertFalse(evidence.zrusZakazku(99));
         assertEquals(1, evidence.getZakazka().size());
         assertEquals(Stav.POPTAVKA, evidence.getZakazka().get(1).getStav());
+    }
+    @Test
+    void posunZeZaplacenoNejdeUzivatelDostaneZpravuTest () {
+        String jmeno = "pepa";
+        String popis = "kolo";
+        int cena = 500;
+        LocalDate odevzdani1 = LocalDate.now().plusDays(5);
+        Evidence evidence = new Evidence();
+        evidence.pridatZakazku(jmeno, popis, cena, odevzdani1);
+        evidence.posunoutStav(1);
+        evidence.posunoutStav(1);
+        evidence.posunoutStav(1);
+        SberacVystup sberac = new SberacVystup();
+        Main.zrusZakazku(sberac, evidence, 1);
+        assertEquals(Stav.ZAPLACENO, evidence.getZakazka().get(1).getStav());
+        assertEquals(List.of("Zakázku nebylo možné zrušit."), sberac.getZpravy());
     }
 }
