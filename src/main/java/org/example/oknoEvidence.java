@@ -140,7 +140,7 @@ public class oknoEvidence {
 
         //ODEBRAT ZAKÁZKU
 
-        JLabel jmenoHledaneZakazkyLabel = new JLabel("Jméno");
+        JLabel jmenoHledaneZakazkyLabel = new JLabel("ID zakázky");
         JTextField jmenoHledaneZakazky = new JTextField(10);
         JButton hledatZakazku = new JButton("Odebrat");
         odebratZakazkuPanel.add(jmenoHledaneZakazkyLabel);
@@ -159,7 +159,7 @@ public class oknoEvidence {
 
         //ZMĚNIT STAV ZAKAZKY
 
-        JLabel jmenoHledaneZakazkyLabel2 = new JLabel("Jméno");
+        JLabel jmenoHledaneZakazkyLabel2 = new JLabel("ID zakázky");
         JTextField jmenoHledaneZakazky2 = new JTextField(10);
         posunoutStavPanel.add(jmenoHledaneZakazkyLabel2);
         posunoutStavPanel.add(jmenoHledaneZakazky2);
@@ -362,7 +362,7 @@ public class oknoEvidence {
         vypisZakazekPoTerminuKtereNejsouHotovePanel.add(vypisZakazekPoTerminuAreaScroll, BorderLayout.CENTER);
         vypisZakazekPoTerminuKtereNejsouHotove.addActionListener(e -> {
             stredKarty.show(stred, "vypisZakazekPoTerminuKtereNejsouHotovePanel");
-            vypisVsechZakazekArea.setText("");
+            vypisZakazekPoTerminuArea.setText("");
             for (Zakazka z : evidence.getZakazka().values()) {
                 if (z.getStav() != Stav.HOTOVO && z.getStav() != Stav.ZAPLACENO && z.getOdevzdani().isBefore(LocalDate.now())) {
                     vypisZakazekPoTerminuArea.append(z.getJmeno() + "\n");

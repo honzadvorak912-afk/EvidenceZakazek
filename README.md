@@ -34,9 +34,13 @@ mvn test
 ```
 
 ## Struktura
-- `main` - vstupní bod, 
-- `evidence` - drží všechny zakázky, přiděluje jim id a vynucuje pravidla
-- `zakazka` - třída s privátními atributy a gettery
-- `Stav` - vytvoření enumu pro stavy zakázek
+- `Main` - vstupní bod, 
+- `Evidence` - drží všechny zakázky, přiděluje jim id a vynucuje pravidla
+- `Zakazka` - třída s privátními atributy a gettery
+- `Stav` - výčet stavů, kterými zakázka prochází
 - `oknoEvidence` - okno přes které lze program ovládat
+- `Vystup` - rozhraní pro zobrazení zprávy uživateli
+- `KonzolovyVystup` - zobrazí zprávu v konzoli
+- `OknovyVystup` - zobrazí zprávu v dialogovém okně
+- `SberacVystup` - zprávy nikam nezobrazuje, ukládá je do seznamu; slouží testům
 
