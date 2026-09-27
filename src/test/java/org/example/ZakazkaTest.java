@@ -1,20 +1,18 @@
 package org.example;
 
 import org.junit.jupiter.api.Test;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.awt.*;
-import java.time.Clock;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.ZoneId;
+import java.time.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
 
 class EvidenceTest {
     @Test
-    void posunoutStavTest () {
+    void posunoutStavTest() {
         String jmeno = "pepa";
         String popis = "kolo";
         int cena = 500;
@@ -26,8 +24,9 @@ class EvidenceTest {
         assertEquals("pepa", evidence.getZakazka().get(1).getJmeno());
         assertEquals(500, evidence.getZakazka().get(1).getCena());
     }
+
     @Test
-    void soucetCenHotovychZakazekTest () {
+    void soucetCenHotovychZakazekTest() {
         String jmeno = "pepa";
         String popis = "kolo";
         int cena = 500;
@@ -44,8 +43,9 @@ class EvidenceTest {
         evidence.posunoutStav(2);
         assertEquals(1500, evidence.soucetCenHotovychZakazek());
     }
+
     @Test
-    void soucetCenZaplacenychZakazekTest () {
+    void soucetCenZaplacenychZakazekTest() {
         String jmeno = "pepa";
         String popis = "kolo";
         int cena = 500;
@@ -65,8 +65,9 @@ class EvidenceTest {
         evidence.posunoutStav(2);
         assertEquals(1500, evidence.soucetCenZaplacenychZakazek());
     }
+
     @Test
-    void soucetZakazekVJednotlivemStavuTest () {
+    void soucetZakazekVJednotlivemStavuTest() {
         String jmeno = "pepa";
         String popis = "kolo";
         int cena = 500;
@@ -89,24 +90,25 @@ class EvidenceTest {
         m.put(Stav.ZAPLACENO, 1);
         assertEquals(m, evidence.pocetZakazekVJednotlivemStavu());
     }
+
     @Test
-    void soucetZakazekPoTerminuTest () {
-        String jmeno = "pepa";
-        String popis = "kolo";
-        int cena = 500;
-        String jmeno2 = "jirka";
-        String popis2 = "auto";
-        int cena2 = 1000;
-        LocalDate odevzdani1 = LocalDate.now().minusDays(5);
-        LocalDate odevzdani2 = LocalDate.now().plusDays(20);
-        Clock hodiny = Clock.fixed(Instant.parse("2024-01-01T10:00:00Z"), ZoneId.systemDefault());
+    void soucetZakazekPoTerminuTest() {
+        PosuvneHodiny hodiny = new PosuvneHodiny(Instant.parse("2026-01-01T12:00:00Z"));
         Evidence evidence = new Evidence(hodiny);
-        evidence.pridatZakazku(jmeno, popis, cena, odevzdani1);
-        evidence.pridatZakazku(jmeno2, popis2, cena2, odevzdani2);
+
+        evidence.pridatZakazku("pepa", "kolo", 500, LocalDate.of(2026, 2, 1));
+        evidence.pridatZakazku("jirka", "auto", 1000, LocalDate.of(2026, 12, 1));
+
+        assertEquals(0, evidence.soucetZakazekPoTerminu());
+
+        hodiny.posunO(Duration.ofDays(60));
+
         assertEquals(1, evidence.soucetZakazekPoTerminu());
+        assertEquals(1, evidence.zakazkyPoTerminu().size());
     }
+
     @Test
-    void zruseniZakazkyTest () {
+    void zruseniZakazkyTest() {
         String jmeno = "pepa";
         String popis = "kolo";
         int cena = 500;
@@ -121,8 +123,9 @@ class EvidenceTest {
         evidence.zrusZakazku(1);
         assertEquals(1, evidence.getZakazka().size());
     }
+
     @Test
-    void posunZeZaplacenoTest () {
+    void posunZeZaplacenoTest() {
         String jmeno = "pepa";
         String popis = "kolo";
         int cena = 500;
@@ -142,8 +145,9 @@ class EvidenceTest {
         assertFalse(evidence.posunoutStav(1));
         assertEquals(Stav.ZAPLACENO, evidence.getZakazka().get(1).getStav());
     }
+
     @Test
-    void zruseniZaplaceneZakazkyTest () {
+    void zruseniZaplaceneZakazkyTest() {
         String jmeno = "pepa";
         String popis = "kolo";
         int cena = 500;
@@ -156,8 +160,9 @@ class EvidenceTest {
         assertFalse(evidence.zrusZakazku(1));
         assertEquals(1, evidence.getZakazka().size());
     }
+
     @Test
-    void zakazkaSNeplatnouHodnotouSeNepridalaTest () {
+    void zakazkaSNeplatnouHodnotouSeNepridalaTest() {
         String jmenoSpatne = "";
         String jmeno = "pepa";
         String popisSpatne = "";
@@ -173,8 +178,9 @@ class EvidenceTest {
         assertThrows(IllegalArgumentException.class, () -> evidence.pridatZakazku(jmeno, popis, cena, odevzdaniSpatne));
         assertEquals(0, evidence.getZakazka().size());
     }
+
     @Test
-    void zruseniZakazkyNezmeniIdTest () {
+    void zruseniZakazkyNezmeniIdTest() {
         String jmeno = "pepa";
         String popis = "kolo";
         int cena = 500;
@@ -194,8 +200,9 @@ class EvidenceTest {
         assertTrue(evidence.getZakazka().containsKey(3));
         assertFalse(evidence.getZakazka().containsKey(2));
     }
+
     @Test
-    void neexistujiciIdTest () {
+    void neexistujiciIdTest() {
         String jmeno = "pepa";
         String popis = "kolo";
         int cena = 500;
@@ -207,8 +214,9 @@ class EvidenceTest {
         assertEquals(1, evidence.getZakazka().size());
         assertEquals(Stav.POPTAVKA, evidence.getZakazka().get(1).getStav());
     }
+
     @Test
-    void posunZeZaplacenoNejdeUzivatelDostaneZpravuTest () {
+    void posunZeZaplacenoNejdeUzivatelDostaneZpravuTest() {
         String jmeno = "pepa";
         String popis = "kolo";
         int cena = 500;
@@ -219,8 +227,23 @@ class EvidenceTest {
         evidence.posunoutStav(1);
         evidence.posunoutStav(1);
         SberacVystup sberac = new SberacVystup();
-        Main.zrusZakazku(sberac, evidence, 1);
+        ZakazkaService.zrusZakazku(sberac, evidence, 1);
         assertEquals(Stav.ZAPLACENO, evidence.getZakazka().get(1).getStav());
         assertEquals(List.of("Zakázku nebylo možné zrušit."), sberac.getZpravy());
+    }
+
+    @Test
+    void ukladaniZakazekTest() {
+        Zakazka zakazka1 = new Zakazka(1, "Pepa", "Kolo", 500, Stav.POPTAVKA, LocalDate.now(), LocalDate.of(2026, 12, 10));
+        String radek = FormatZakazky.naRadek(zakazka1);
+        Zakazka zakazka2 = FormatZakazky.naZakazku(radek);
+        assertEquals(zakazka1.getId(), zakazka2.getId());
+        assertEquals(zakazka1.getJmeno(), zakazka2.getJmeno());
+        assertEquals(zakazka1.getPopis(), zakazka2.getPopis());
+        assertEquals(zakazka1.getCena(), zakazka2.getCena());
+        assertEquals(zakazka1.getStav(), zakazka2.getStav());
+        assertEquals(zakazka1.getVytvoreni(), zakazka2.getVytvoreni());
+        assertEquals(zakazka1.getOdevzdani(), zakazka2.getOdevzdani());
+
     }
 }

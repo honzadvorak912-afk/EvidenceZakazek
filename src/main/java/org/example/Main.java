@@ -22,11 +22,11 @@ public class Main {
                         novaZakazka(evidence);
                         break;
                     case 3:
-                        vypisZakazky(evidence.getZakazka());
+                        vypisZakazky(evidence);
                         break;
                     case 4:
-                        int cislo1 = najitZakazku(evidence.getZakazka(), IO.readln("Zadejte id zakázky: "), new KonzolovyVystup());
-                        if (cislo1 != -1) {posunStav(new KonzolovyVystup(), evidence, cislo1);}
+                        int cislo1 = ZakazkaService.najitZakazku(new KonzolovyVystup(),evidence, IO.readln("Zadejte id zakázky: "));
+                        if (cislo1 != -1) {ZakazkaService.posunStav(new KonzolovyVystup(), evidence, cislo1);}
                         break;
                     case 5:
                         Map<Stav, Integer> pocetZakazekVJednotlivemStavu = evidence.pocetZakazekVJednotlivemStavu();
@@ -47,8 +47,8 @@ public class Main {
                         IO.println("Zakázek po termínu odevzdání: " + vydelano);
                         break;
                     case 9:
-                        int cislo2 = najitZakazku(evidence.getZakazka(), IO.readln("Zadejte id zakázky: "), new KonzolovyVystup());
-                        if (cislo2 != -1) {zrusZakazku(new KonzolovyVystup(), evidence, cislo2);}
+                        int cislo2 = ZakazkaService.najitZakazku(new KonzolovyVystup(), evidence, IO.readln("Zadejte id zakázky: "));
+                        if (cislo2 != -1) {ZakazkaService.zrusZakazku(new KonzolovyVystup(), evidence, cislo2);}
                         break;
                     default:
                         IO.println("Nezadal jste ani jednu z možností.");
@@ -61,23 +61,7 @@ public class Main {
         }
     }
 
-    static void zrusZakazku (Vystup vystup, Evidence evidence, int id) {
-        if (evidence.zrusZakazku(id)) {
-            vystup.zobraz("Zakázka byla zrušena.");
-        } else {
-            vystup.zobraz("Zakázku nebylo možné zrušit.");
-        }
-    }
-
-    static void posunStav (Vystup vystup, Evidence evidence, int id) {
-        if (evidence.posunoutStav(id)) {
-            vystup.zobraz("Zakázka byla posunuta.");
-        } else {
-            vystup.zobraz("Zakázku nebylo možné posunout.");
-        }
-    }
-
-    static void vypisZakazky(Map<Integer, Zakazka> zakazka) {
+    static void vypisZakazky(Evidence evidence) {
         boolean najitaZakazka = true;
         try {
             IO.println("Pro vypsání celé evidence zakázek zmáčkněte 1.");
@@ -85,7 +69,7 @@ public class Main {
             IO.println("Pro vypsání zakázek po termínu, které ještě nejsou hotové zmáčkněte 3.");
             switch (Integer.parseInt(IO.readln("Vaše odpověď: "))) {
                 case 1:
-                    for (Zakazka z : zakazka.values()) {
+                    for (Zakazka z : evidence.getZakazka().values()) {
                         vypisZakazku(z);
                         najitaZakazka = false;
                     }
@@ -97,7 +81,7 @@ public class Main {
                     IO.println("Pro vypsání zakázek ve stavu ZAPLACENO zmáčkněte 4.");
                     switch (Integer.parseInt(IO.readln("Váše odpověď: "))) {
                         case 1:
-                            for (Zakazka z : zakazka.values()) {
+                            for (Zakazka z : evidence.getZakazka().values()) {
                                 if (z.getStav() == Stav.POPTAVKA) {
                                     najitaZakazka = false;
                                     vypisZakazku(z);
@@ -105,7 +89,7 @@ public class Main {
                             }
                             break;
                         case 2:
-                            for (Zakazka z : zakazka.values()) {
+                            for (Zakazka z : evidence.getZakazka().values()) {
                                 if (z.getStav() == Stav.ROZPRACOVANO) {
                                     najitaZakazka = false;
                                     vypisZakazku(z);
@@ -113,7 +97,7 @@ public class Main {
                             }
                             break;
                         case 3:
-                            for (Zakazka z : zakazka.values()) {
+                            for (Zakazka z : evidence.getZakazka().values()) {
                                 if (z.getStav() == Stav.HOTOVO) {
                                     najitaZakazka = false;
                                     vypisZakazku(z);
@@ -121,7 +105,7 @@ public class Main {
                             }
                             break;
                         case 4:
-                            for (Zakazka z : zakazka.values()) {
+                            for (Zakazka z : evidence.getZakazka().values()) {
                                 if (z.getStav() == Stav.ZAPLACENO) {
                                     najitaZakazka = false;
                                     vypisZakazku(z);
@@ -134,11 +118,9 @@ public class Main {
                     }
                     break;
                 case 3:
-                    for (Zakazka z : zakazka.values()) {
-                        if (z.getOdevzdani().isBefore(LocalDate.now()) && z.getStav() != Stav.ZAPLACENO && z.getStav() != Stav.HOTOVO) {
+                    for (Zakazka z : evidence.zakazkyPoTerminu()) {
                             najitaZakazka = false;
                             vypisZakazku(z);
-                        }
                     }
                     break;
                 default:
@@ -180,20 +162,6 @@ public class Main {
         IO.println("Datum odevzdání: " + z.getOdevzdani().format(format));
     }
 
-    static int najitZakazku(Map<Integer, Zakazka> zakazka, String id, Vystup vystup) {
-        try {
-            int cislo = Integer.parseInt(id);
-            if (zakazka.containsKey(cislo)) {
-                return cislo;
-            }
-            vystup.zobraz("Nebyla nalezena žádná zakázka.");
-            return -1;
-        } catch (NumberFormatException e) {
-            vystup.zobraz("Nezadal jste číslo.");
-        }
-        return -1;
-    }
-
     static void novaZakazka(Evidence evidence) {
         DateTimeFormatter format = DateTimeFormatter.ofPattern("dd.MM.yyyy");
         boolean kontrolaCena = true;
@@ -222,9 +190,7 @@ public class Main {
         }
         try {
             int cislo = evidence.pridatZakazku(jmeno, popis, cena, datumOdevzdani);
-            if (cislo > 0) {
                 IO.println("Zakázka byla úspěšně přidána pod id: " + cislo);
-            }
         } catch (IllegalArgumentException e) {
             IO.println(e.getMessage());
         }

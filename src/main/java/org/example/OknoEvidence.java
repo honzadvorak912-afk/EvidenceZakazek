@@ -7,7 +7,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.Map;
 
-public class oknoEvidence {
+public class OknoEvidence {
     public static void main(String[] args) {
         Evidence evidence = new Evidence();
         JFrame okno = new JFrame("Evidence");
@@ -123,8 +123,8 @@ public class oknoEvidence {
                 String popis = popisPridatZakazku.getText();
                 int cena = Integer.parseInt(cenaPridatZakazku.getText());
                 LocalDate datumOdevzdání = LocalDate.parse(datumPridatZakazku.getText(), format);
-                evidence.pridatZakazku(jmeno, popis, cena, datumOdevzdání);
-                JOptionPane.showMessageDialog(okno, "Úspěšně jste přidal novou zakázku.");
+                int cislo = evidence.pridatZakazku(jmeno, popis, cena, datumOdevzdání);
+                JOptionPane.showMessageDialog(okno, "Úspěšně jste přidal novou zakázku pod id " + cislo);
                 jmenoPridatZakazku.setText("");
                 popisPridatZakazku.setText("");
                 cenaPridatZakazku.setText("");
@@ -152,8 +152,10 @@ public class oknoEvidence {
         });
 
         hledatZakazku.addActionListener(e -> {
-            int cislo = Main.najitZakazku(evidence.getZakazka(), jmenoHledaneZakazky.getText(), new OknovyVystup());
-            if (cislo != -1) {Main.zrusZakazku(new OknovyVystup(), evidence, cislo);}
+            int cislo = ZakazkaService.najitZakazku(new OknovyVystup(), evidence, jmenoHledaneZakazky.getText());
+            if (cislo != -1) {
+                ZakazkaService.zrusZakazku(new OknovyVystup(), evidence, cislo);
+            }
             jmenoHledaneZakazky.setText("");
         });
 
@@ -171,8 +173,10 @@ public class oknoEvidence {
         });
 
         zmenit.addActionListener(e -> {
-            int cislo = Main.najitZakazku(evidence.getZakazka(), jmenoHledaneZakazky2.getText(), new OknovyVystup());
-            if (cislo != -1) {Main.posunStav(new OknovyVystup(), evidence, cislo);}
+            int cislo = ZakazkaService.najitZakazku(new OknovyVystup(), evidence, jmenoHledaneZakazky2.getText());
+            if (cislo != -1) {
+                ZakazkaService.posunStav(new OknovyVystup(), evidence, cislo);
+            }
             jmenoHledaneZakazky2.setText("");
         });
 
@@ -232,6 +236,7 @@ public class oknoEvidence {
             stredKarty.show(stred, "vypisVsechZakazekPanel");
             vypisVsechZakazekArea.setText("");
             for (Zakazka z : evidence.getZakazka().values()) {
+                vypisVsechZakazekArea.append(z.getId() + "\n");
                 vypisVsechZakazekArea.append(z.getJmeno() + "\n");
                 vypisVsechZakazekArea.append(z.getPopis() + "\n");
                 vypisVsechZakazekArea.append(z.getCena() + "\n");
@@ -286,6 +291,7 @@ public class oknoEvidence {
             vypisPoptavkaArea.setText("");
             for (Zakazka z : evidence.getZakazka().values()) {
                 if (z.getStav() == Stav.POPTAVKA) {
+                    vypisPoptavkaArea.append(z.getId() + "\n");
                     vypisPoptavkaArea.append(z.getJmeno() + "\n");
                     vypisPoptavkaArea.append(z.getPopis() + "\n");
                     vypisPoptavkaArea.append(z.getCena() + "\n");
@@ -305,6 +311,7 @@ public class oknoEvidence {
             vypisRozpracovanoArea.setText("");
             for (Zakazka z : evidence.getZakazka().values()) {
                 if (z.getStav() == Stav.ROZPRACOVANO) {
+                    vypisRozpracovanoArea.append(z.getId() + "\n");
                     vypisRozpracovanoArea.append(z.getJmeno() + "\n");
                     vypisRozpracovanoArea.append(z.getPopis() + "\n");
                     vypisRozpracovanoArea.append(z.getCena() + "\n");
@@ -324,6 +331,7 @@ public class oknoEvidence {
             vypisHotovoArea.setText("");
             for (Zakazka z : evidence.getZakazka().values()) {
                 if (z.getStav() == Stav.HOTOVO) {
+                    vypisHotovoArea.append(z.getId() + "\n");
                     vypisHotovoArea.append(z.getJmeno() + "\n");
                     vypisHotovoArea.append(z.getPopis() + "\n");
                     vypisHotovoArea.append(z.getCena() + "\n");
@@ -343,6 +351,7 @@ public class oknoEvidence {
             vypisZaplacenoArea.setText("");
             for (Zakazka z : evidence.getZakazka().values()) {
                 if (z.getStav() == Stav.ZAPLACENO) {
+                    vypisZaplacenoArea.append(z.getId() + "\n");
                     vypisZaplacenoArea.append(z.getJmeno() + "\n");
                     vypisZaplacenoArea.append(z.getPopis() + "\n");
                     vypisZaplacenoArea.append(z.getCena() + "\n");
@@ -363,15 +372,14 @@ public class oknoEvidence {
         vypisZakazekPoTerminuKtereNejsouHotove.addActionListener(e -> {
             stredKarty.show(stred, "vypisZakazekPoTerminuKtereNejsouHotovePanel");
             vypisZakazekPoTerminuArea.setText("");
-            for (Zakazka z : evidence.getZakazka().values()) {
-                if (z.getStav() != Stav.HOTOVO && z.getStav() != Stav.ZAPLACENO && z.getOdevzdani().isBefore(LocalDate.now())) {
-                    vypisZakazekPoTerminuArea.append(z.getJmeno() + "\n");
-                    vypisZakazekPoTerminuArea.append(z.getPopis() + "\n");
-                    vypisZakazekPoTerminuArea.append(z.getCena() + "\n");
-                    vypisZakazekPoTerminuArea.append(z.getStav() + "\n");
-                    vypisZakazekPoTerminuArea.append(z.getVytvoreni() + "\n");
-                    vypisZakazekPoTerminuArea.append(z.getOdevzdani() + "\n");
-                }
+            for (Zakazka z : evidence.zakazkyPoTerminu()) {
+                vypisZakazekPoTerminuArea.append(z.getId() + "\n");
+                vypisZakazekPoTerminuArea.append(z.getJmeno() + "\n");
+                vypisZakazekPoTerminuArea.append(z.getPopis() + "\n");
+                vypisZakazekPoTerminuArea.append(z.getCena() + "\n");
+                vypisZakazekPoTerminuArea.append(z.getStav() + "\n");
+                vypisZakazekPoTerminuArea.append(z.getVytvoreni() + "\n");
+                vypisZakazekPoTerminuArea.append(z.getOdevzdani() + "\n");
             }
         });
 

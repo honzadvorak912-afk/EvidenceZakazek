@@ -43,4 +43,6 @@ mvn test
 - `KonzolovyVystup` - zobrazí zprávu v konzoli
 - `OknovyVystup` - zobrazí zprávu v dialogovém okně
 - `SberacVystup` - zprávy nikam nezobrazuje, ukládá je do seznamu; slouží testům
+- `FormatZakazky` - úprava formátu zakázky
+- `ZakazkaService` - správa zakázek
 

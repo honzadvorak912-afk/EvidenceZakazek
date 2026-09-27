@@ -1,9 +1,10 @@
 package org.example;
 
-
 import java.time.Clock;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Evidence {
@@ -82,13 +83,7 @@ public class Evidence {
     }
 
     public int soucetZakazekPoTerminu() {
-        int vydelano = 0;
-        for (Zakazka z : zakazka.values()) {
-            if (z.getOdevzdani().isBefore(LocalDate.now()) && z.getStav() != Stav.ZAPLACENO && z.getStav() != Stav.HOTOVO) {
-                vydelano++;
-            }
-        }
-        return vydelano;
+        return zakazkyPoTerminu().size();
     }
 
     public boolean zrusZakazku(int cislo) {
@@ -98,6 +93,18 @@ public class Evidence {
             zakazka.remove(cislo);
             return true;
         }
+    }
+
+    public List<Zakazka> zakazkyPoTerminu() {
+        List<Zakazka> vysledek = new ArrayList<>();
+        for (Zakazka z : zakazka.values()) {
+            if (z.getOdevzdani().isBefore(LocalDate.now(hodiny))
+                    && z.getStav() != Stav.ZAPLACENO
+                    && z.getStav() != Stav.HOTOVO) {
+                vysledek.add(z);
+            }
+        }
+        return vysledek;
     }
 }
 
