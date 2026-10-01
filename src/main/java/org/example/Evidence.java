@@ -1,5 +1,8 @@
 package org.example;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -18,13 +21,20 @@ public class Evidence {
     public Evidence(Clock hodiny) {
         this.hodiny = hodiny;
     }
+    public Evidence (SouboroveUloziste uloziste, Clock hodiny) {
+        this.hodiny = hodiny;
+        this.zakazka = uloziste.nacti();
+        for (Zakazka z : zakazka.values()) {
+            key = Math.max(z.getId() + 1, key);
+        }
+    }
 
     public int pridatZakazku(String jmeno, String popis, int cena, LocalDate odevzdani) {
-            if (jmeno.isBlank()) {
-                throw new IllegalArgumentException("Jméno klienta nesmí být prázdné.");
+            if (jmeno.isBlank() || jmeno.contains(";")) {
+                throw new IllegalArgumentException("Jméno klienta nesmí být prázdné a nesmí obsahovat ;.");
             }
-            if (popis.isBlank()) {
-                throw new IllegalArgumentException("Popis nesmí být prázdný.");
+            if (popis.isBlank() || popis.contains(";")) {
+                throw new IllegalArgumentException("Popis nesmí být prázdný a nesmí obsahovat ;.");
             }
             if (cena <= 0) {
                 throw new IllegalArgumentException("Cena nesmí být záporná.");

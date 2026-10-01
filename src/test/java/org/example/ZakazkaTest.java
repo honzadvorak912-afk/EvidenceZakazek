@@ -1,11 +1,16 @@
 package org.example;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.awt.*;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.*;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
@@ -217,6 +222,7 @@ class EvidenceTest {
 
     @Test
     void posunZeZaplacenoNejdeUzivatelDostaneZpravuTest() {
+        SouboroveUloziste uloziste = new SouboroveUloziste(Path.of("zakazky.csv"));
         String jmeno = "pepa";
         String popis = "kolo";
         int cena = 500;
@@ -227,7 +233,7 @@ class EvidenceTest {
         evidence.posunoutStav(1);
         evidence.posunoutStav(1);
         SberacVystup sberac = new SberacVystup();
-        ZakazkaService.zrusZakazku(sberac, evidence, 1);
+        ZakazkaService.zrusZakazku(sberac, evidence, 1, uloziste);
         assertEquals(Stav.ZAPLACENO, evidence.getZakazka().get(1).getStav());
         assertEquals(List.of("Zakázku nebylo možné zrušit."), sberac.getZpravy());
     }
@@ -245,5 +251,37 @@ class EvidenceTest {
         assertEquals(zakazka1.getVytvoreni(), zakazka2.getVytvoreni());
         assertEquals(zakazka1.getOdevzdani(), zakazka2.getOdevzdani());
 
+    }
+    @Test
+    void ulozeniNacteniZakazkyTest (@TempDir Path slozka) throws IOException {
+        Path soubor = slozka.resolve("zakazky.csv");
+        SouboroveUloziste uloziste = new SouboroveUloziste(soubor);
+        Evidence evidence = new Evidence(uloziste, Clock.systemDefaultZone());
+        evidence.pridatZakazku("Pepa", "Kolo", 500, LocalDate.of(2026, 12, 10));
+        evidence.pridatZakazku("Jirka", "auto", 8000, LocalDate.of(2026, 12, 10));
+        evidence.pridatZakazku("Karel", "motorka", 12000, LocalDate.of(2026, 12, 10));
+        evidence.pridatZakazku("Tomáš", "koloběžka", 2000, LocalDate.of(2026, 12, 10));
+        evidence.zrusZakazku(2);
+        uloziste.uloz(evidence);
+        Map<Integer, Zakazka> nactene = uloziste.nacti();
+        assertEquals(3, nactene.size());
+        assertFalse(evidence.getZakazka().containsKey(2));
+        uloziste.uloz(evidence);
+
+        Evidence druha = new Evidence(uloziste, Clock.systemDefaultZone());
+
+        assertEquals(3, druha.getZakazka().size());
+        assertFalse(druha.getZakazka().containsKey(2));
+        assertEquals("Pepa", druha.getZakazka().get(1).getJmeno());
+
+        int id = druha.pridatZakazku("Franta", "pračka", 2000, LocalDate.of(2026, 12, 10));
+        assertEquals(5, id);
+    }
+    @Test
+    void neexistujiciSoubor (@TempDir Path slozka) {
+        Path soubor = slozka.resolve("neexistuje.csv");
+        SouboroveUloziste uloziste = new SouboroveUloziste(soubor);
+        Evidence evidence = new Evidence(uloziste, Clock.systemDefaultZone());
+        assertEquals(0, evidence.getZakazka().size());
     }
 }

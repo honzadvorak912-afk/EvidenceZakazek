@@ -15,6 +15,7 @@ Je to program na kterém se učím základy javy.
 - Funkční testy
 - Funkční okno přes které lze program ovládat.
 - Každá zakázka má svoje číslo, které se ukazuje ve výpisu a zadává při rušení a posunu stavu.
+- Zakázky se ukládají do csv souboru takže i po ukončení programu zakázky zůstanou uložené
 
 ## Jak to spustit
 Je potřeba JDK 25, Maven.
@@ -45,4 +46,5 @@ mvn test
 - `SberacVystup` - zprávy nikam nezobrazuje, ukládá je do seznamu; slouží testům
 - `FormatZakazky` - úprava formátu zakázky
 - `ZakazkaService` - správa zakázek
+- `SouboroveUloziste` - ukládá a načítá zakázky
 

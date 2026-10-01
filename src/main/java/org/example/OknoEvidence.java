@@ -2,6 +2,8 @@ package org.example;
 
 import javax.swing.*;
 import java.awt.*;
+import java.nio.file.Path;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -9,11 +11,19 @@ import java.util.Map;
 
 public class OknoEvidence {
     public static void main(String[] args) {
-        Evidence evidence = new Evidence();
+        SouboroveUloziste uloziste = new SouboroveUloziste(Path.of("zakazky.csv"));
         JFrame okno = new JFrame("Evidence");
         okno.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         okno.setSize(400, 300);
         okno.setLocationRelativeTo(null);
+        Evidence evidence;
+        Vystup vystup = new OknovyVystup();
+        try {
+            evidence = new Evidence(uloziste, Clock.systemDefaultZone());
+        } catch (IllegalArgumentException e) {
+            vystup.zobraz(e.getMessage());
+            return;
+        }
 
         JButton konec = new JButton("Konec");
         okno.add(konec, BorderLayout.SOUTH);
@@ -125,6 +135,7 @@ public class OknoEvidence {
                 LocalDate datumOdevzdání = LocalDate.parse(datumPridatZakazku.getText(), format);
                 int cislo = evidence.pridatZakazku(jmeno, popis, cena, datumOdevzdání);
                 JOptionPane.showMessageDialog(okno, "Úspěšně jste přidal novou zakázku pod id " + cislo);
+                uloziste.uloz(evidence);
                 jmenoPridatZakazku.setText("");
                 popisPridatZakazku.setText("");
                 cenaPridatZakazku.setText("");
@@ -154,7 +165,11 @@ public class OknoEvidence {
         hledatZakazku.addActionListener(e -> {
             int cislo = ZakazkaService.najitZakazku(new OknovyVystup(), evidence, jmenoHledaneZakazky.getText());
             if (cislo != -1) {
-                ZakazkaService.zrusZakazku(new OknovyVystup(), evidence, cislo);
+                try {
+                    ZakazkaService.zrusZakazku(new OknovyVystup(), evidence, cislo, uloziste);
+                } catch (IllegalArgumentException ex) {
+                    vystup.zobraz(ex.getMessage());
+                }
             }
             jmenoHledaneZakazky.setText("");
         });
@@ -175,7 +190,11 @@ public class OknoEvidence {
         zmenit.addActionListener(e -> {
             int cislo = ZakazkaService.najitZakazku(new OknovyVystup(), evidence, jmenoHledaneZakazky2.getText());
             if (cislo != -1) {
-                ZakazkaService.posunStav(new OknovyVystup(), evidence, cislo);
+                try {
+                    ZakazkaService.posunStav(new OknovyVystup(), evidence, cislo, uloziste);
+                } catch (IllegalArgumentException ex) {
+                    vystup.zobraz(ex.getMessage());
+                }
             }
             jmenoHledaneZakazky2.setText("");
         });

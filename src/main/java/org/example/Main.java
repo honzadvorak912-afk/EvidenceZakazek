@@ -1,5 +1,7 @@
 package org.example;
 
+import java.nio.file.Path;
+import java.time.Clock;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -9,7 +11,14 @@ public class Main {
     static void main(String[] args) {
         boolean bezi = true;
         int vydelano;
-        Evidence evidence = new Evidence();
+        SouboroveUloziste uloziste = new SouboroveUloziste(Path.of("zakazky.csv"));
+        Evidence evidence;
+        try {
+            evidence = new Evidence(uloziste, Clock.systemDefaultZone());
+        } catch (IllegalArgumentException e) {
+            IO.println(e.getMessage());
+            return;
+        }
 
         while (bezi) {
             vypisMenu();
@@ -19,14 +28,16 @@ public class Main {
                         bezi = false;
                         break;
                     case 2:
-                        novaZakazka(evidence);
+                        novaZakazka(evidence, uloziste);
                         break;
                     case 3:
                         vypisZakazky(evidence);
                         break;
                     case 4:
-                        int cislo1 = ZakazkaService.najitZakazku(new KonzolovyVystup(),evidence, IO.readln("Zadejte id zakázky: "));
-                        if (cislo1 != -1) {ZakazkaService.posunStav(new KonzolovyVystup(), evidence, cislo1);}
+                        int cislo1 = ZakazkaService.najitZakazku(new KonzolovyVystup(), evidence, IO.readln("Zadejte id zakázky: "));
+                        if (cislo1 != -1) {
+                            ZakazkaService.posunStav(new KonzolovyVystup(), evidence, cislo1, uloziste);
+                        }
                         break;
                     case 5:
                         Map<Stav, Integer> pocetZakazekVJednotlivemStavu = evidence.pocetZakazekVJednotlivemStavu();
@@ -48,7 +59,9 @@ public class Main {
                         break;
                     case 9:
                         int cislo2 = ZakazkaService.najitZakazku(new KonzolovyVystup(), evidence, IO.readln("Zadejte id zakázky: "));
-                        if (cislo2 != -1) {ZakazkaService.zrusZakazku(new KonzolovyVystup(), evidence, cislo2);}
+                        if (cislo2 != -1) {
+                            ZakazkaService.zrusZakazku(new KonzolovyVystup(), evidence, cislo2, uloziste);
+                        }
                         break;
                     default:
                         IO.println("Nezadal jste ani jednu z možností.");
@@ -57,6 +70,8 @@ public class Main {
                 }
             } catch (NumberFormatException e) {
                 IO.println("Zadejte prosím číslo.");
+            } catch (IllegalArgumentException e) {
+                IO.println(e.getMessage());
             }
         }
     }
@@ -119,8 +134,8 @@ public class Main {
                     break;
                 case 3:
                     for (Zakazka z : evidence.zakazkyPoTerminu()) {
-                            najitaZakazka = false;
-                            vypisZakazku(z);
+                        najitaZakazka = false;
+                        vypisZakazku(z);
                     }
                     break;
                 default:
@@ -162,14 +177,14 @@ public class Main {
         IO.println("Datum odevzdání: " + z.getOdevzdani().format(format));
     }
 
-    static void novaZakazka(Evidence evidence) {
+    static void novaZakazka(Evidence evidence, SouboroveUloziste uloziste) {
         DateTimeFormatter format = DateTimeFormatter.ofPattern("dd.MM.yyyy");
         boolean kontrolaCena = true;
         boolean kontrolaDatum = true;
         int cena = 0;
         LocalDate datumOdevzdani = null;
-        String jmeno = IO.readln("Zadej jméno zákazníka: ");
-        String popis = IO.readln("Popiš co je potřeba opravit: ");
+        String jmeno = IO.readln("Jméno zákazníka: ");
+        String popis = IO.readln("Popis zakázky: ");
         while (kontrolaCena) {
             try {
                 cena = Integer.parseInt(IO.readln("Odhadovaná cena: "));
@@ -190,7 +205,8 @@ public class Main {
         }
         try {
             int cislo = evidence.pridatZakazku(jmeno, popis, cena, datumOdevzdani);
-                IO.println("Zakázka byla úspěšně přidána pod id: " + cislo);
+            uloziste.uloz(evidence);
+            IO.println("Zakázka byla úspěšně přidána pod id: " + cislo);
         } catch (IllegalArgumentException e) {
             IO.println(e.getMessage());
         }
