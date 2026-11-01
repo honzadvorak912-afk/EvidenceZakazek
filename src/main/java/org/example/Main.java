@@ -11,12 +11,14 @@ public class Main {
     static void main(String[] args) {
         boolean bezi = true;
         int vydelano;
-        SouboroveUloziste uloziste = new SouboroveUloziste(Path.of("zakazky.csv"));
+        //Uloz uloz = new SouboroveUloziste(Path.of("zakazky.csv"), Path.of("zakaznici.csv"));
+        Uloz uloz = new DatabazoveUloziste("jdbc:mysql://localhost:3306/evidence", "root", "");
         Evidence evidence;
         try {
-            evidence = new Evidence(uloziste, Clock.systemDefaultZone());
-        } catch (IllegalArgumentException e) {
+            evidence = new Evidence(uloz, Clock.systemDefaultZone());
+        } catch (IllegalStateException | IllegalArgumentException e) {
             IO.println(e.getMessage());
+            e.printStackTrace();
             return;
         }
 
@@ -28,7 +30,7 @@ public class Main {
                         bezi = false;
                         break;
                     case 2:
-                        novaZakazka(evidence, uloziste);
+                        novaZakazka(evidence, uloz);
                         break;
                     case 3:
                         vypisZakazky(evidence);
@@ -36,7 +38,7 @@ public class Main {
                     case 4:
                         int cislo1 = ZakazkaService.najitZakazku(new KonzolovyVystup(), evidence, IO.readln("Zadejte id zakázky: "));
                         if (cislo1 != -1) {
-                            ZakazkaService.posunStav(new KonzolovyVystup(), evidence, cislo1, uloziste);
+                            ZakazkaService.posunStav(new KonzolovyVystup(), evidence, cislo1, uloz);
                         }
                         break;
                     case 5:
@@ -60,8 +62,17 @@ public class Main {
                     case 9:
                         int cislo2 = ZakazkaService.najitZakazku(new KonzolovyVystup(), evidence, IO.readln("Zadejte id zakázky: "));
                         if (cislo2 != -1) {
-                            ZakazkaService.zrusZakazku(new KonzolovyVystup(), evidence, cislo2, uloziste);
+                            ZakazkaService.zrusZakazku(new KonzolovyVystup(), evidence, cislo2, uloz);
                         }
+                        break;
+                    case 10:
+                        novyZakaznik(evidence, uloz);
+                        break;
+                    case 11:
+                        vypisZakaznika(evidence.getZakaznik());
+                        break;
+                    case 12:
+                        zrusZakaznika(evidence, uloz);
                         break;
                     default:
                         IO.println("Nezadal jste ani jednu z možností.");
@@ -154,7 +165,7 @@ public class Main {
     }
 
     static void vypisMenu() {
-        IO.println("Vítejte v menu:");
+        IO.println("\nVítejte v menu:");
         IO.println("Pro ukončení zmáčkněte 1");
         IO.println("Pro přidání zakázky zmáčkněte 2");
         IO.println("Pro výpis zakázek zmáčkněte 3");
@@ -164,26 +175,42 @@ public class Main {
         IO.println("Pro vypsání součtu cen zaplacených zakázek zmáčkněte 7");
         IO.println("Pro vypsání součtu zakázek po termínu zmáčkněte 8");
         IO.println("Pro zrušení zakázky zmáčkněte 9");
+        IO.println("Pro přidání zákazníka zmáčkněte 10");
+        IO.println("Pro vypsání zákazníků zmáčkněte 11");
+        IO.println("Pro zrušení zákazníka zmáčkněte 12\n");
     }
 
     static void vypisZakazku(Zakazka z) {
         DateTimeFormatter format = DateTimeFormatter.ofPattern("dd.MM.yyyy");
-        IO.println("id zakázky: " + z.getId());
+        IO.println("\nid zakázky: " + z.getId());
         IO.println("Jméno zákazníka: " + z.getJmeno());
         IO.println("Popis zakázky: " + z.getPopis());
         IO.println("Stav zakázky: " + z.getStav());
         IO.println("Cena: " + z.getCena() + " Kč");
         IO.println("Datum zadání: " + z.getVytvoreni().format(format));
-        IO.println("Datum odevzdání: " + z.getOdevzdani().format(format));
+        IO.println("Datum odevzdání: " + z.getOdevzdani().format(format) + "\n");
     }
 
-    static void novaZakazka(Evidence evidence, SouboroveUloziste uloziste) {
+    static void novaZakazka(Evidence evidence, Uloz uloz) {
         DateTimeFormatter format = DateTimeFormatter.ofPattern("dd.MM.yyyy");
         boolean kontrolaCena = true;
         boolean kontrolaDatum = true;
+        boolean kontrolaId = true;
         int cena = 0;
+        int id = 0;
         LocalDate datumOdevzdani = null;
-        String jmeno = IO.readln("Jméno zákazníka: ");
+        while (kontrolaId) {
+            try {
+                id = Integer.parseInt(IO.readln("Id zákazníka: "));
+                if (id < 1) {
+                    IO.println("Id zákazníka musí být větší než 0.");
+                } else {
+                    kontrolaId = false;
+                }
+            } catch (NumberFormatException e) {
+                IO.println("Nezadal jste číslo.");
+            }
+        }
         String popis = IO.readln("Popis zakázky: ");
         while (kontrolaCena) {
             try {
@@ -204,11 +231,45 @@ public class Main {
             }
         }
         try {
-            int cislo = evidence.pridatZakazku(jmeno, popis, cena, datumOdevzdani);
-            uloziste.uloz(evidence);
+            int cislo = evidence.pridatZakazku(id, popis, cena, datumOdevzdani);
+            uloz.ulozZakazku(evidence.getZakazka().get(cislo));
             IO.println("Zakázka byla úspěšně přidána pod id: " + cislo);
         } catch (IllegalArgumentException e) {
             IO.println(e.getMessage());
+        }
+    }
+    static void novyZakaznik(Evidence evidence, Uloz uloz){
+        String jmeno = IO.readln("Jméno zákazníka: ");
+        String telefon = IO.readln("Telefon zákazníka: ");
+        try {
+            int cislo = evidence.pridatZakaznika(jmeno, telefon);
+            uloz.pridejZakaznika(evidence.getZakaznik().get(cislo));
+            IO.println("Zákazník byl úspěšně přidán pod id: " + cislo);
+        } catch (IllegalArgumentException e) {
+            IO.println(e.getMessage());
+        }
+    }
+    static void vypisZakaznika(Map<Integer, Zakaznik> zakaznik) {
+        if (zakaznik.isEmpty()) {
+            IO.println("Zatím tu žádný zákazník není.");
+        }
+        for (Zakaznik z : zakaznik.values()) {
+            IO.println("\nId: " + z.getId());
+            IO.println("Jméno: " + z.getJmeno());
+            IO.println("Telefon: " + z.getTelefon() + "\n");
+        }
+    }
+    static void zrusZakaznika(Evidence evidence, Uloz uloz) {
+        try {
+            int cislo = Integer.parseInt(IO.readln("Id zákazníka: "));
+            if (evidence.zrusZakaznika(cislo)) {
+                IO.println("Zákazník byl odebrán.");
+                uloz.odeberZakaznika(cislo);
+            } else {
+                IO.println("Zákazník nebyl nalezen nebo má ještě zakázku.");
+            }
+        } catch (NumberFormatException e) {
+            IO.println("Nezadal jste číslo.");
         }
     }
 }

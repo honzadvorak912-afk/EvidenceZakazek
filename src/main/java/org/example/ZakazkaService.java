@@ -1,19 +1,19 @@
 package org.example;
 
 public class ZakazkaService {
-    static void zrusZakazku (Vystup vystup, Evidence evidence, int id, SouboroveUloziste uloziste) {
+    static void zrusZakazku (Vystup vystup, Evidence evidence, int id, Uloz uloz) {
         if (evidence.zrusZakazku(id)) {
             vystup.zobraz("Zakázka byla zrušena.");
-            uloziste.uloz(evidence);
+            uloz.odeberZakazku(id);
         } else {
             vystup.zobraz("Zakázku nebylo možné zrušit.");
         }
     }
 
-    static void posunStav (Vystup vystup, Evidence evidence, int id, SouboroveUloziste uloziste) {
+    static void posunStav (Vystup vystup, Evidence evidence, int id, Uloz uloz) {
         if (evidence.posunoutStav(id)) {
             vystup.zobraz("Zakázka byla posunuta.");
-            uloziste.uloz(evidence);
+            uloz.ulozZakazku(evidence.getZakazka().get(id));
         } else {
             vystup.zobraz("Zakázku nebylo možné posunout.");
         }

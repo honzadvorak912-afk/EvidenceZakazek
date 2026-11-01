@@ -4,7 +4,7 @@ import java.time.LocalDate;
 
 public class Zakazka {
     private final int cisloZakazky;
-    private final String jmeno;
+    private final Zakaznik zakaznik;
     private final String popis;
     private final int cena;
     private Stav stav;
@@ -16,8 +16,10 @@ public class Zakazka {
     }
 
     public String getJmeno() {
-        return jmeno;
+        return zakaznik.getJmeno();
     }
+    public String getTelefon() {return zakaznik.getTelefon();}
+    public int getZakaznikId() {return zakaznik.getId();}
 
     public String getPopis() {
         return popis;
@@ -45,9 +47,9 @@ public class Zakazka {
         }
     }
 
-    public Zakazka(int cisloZakazky, String jmeno, String popis, int cena, Stav stav, LocalDate vytvoreni, LocalDate odevzdani) {
+    public Zakazka(int cisloZakazky, Zakaznik zakaznik, String popis, int cena, Stav stav, LocalDate vytvoreni, LocalDate odevzdani) {
         this.cisloZakazky = cisloZakazky;
-        this.jmeno = jmeno;
+        this.zakaznik = zakaznik;
         this.popis = popis;
         this.cena = cena;
         this.vytvoreni = vytvoreni;

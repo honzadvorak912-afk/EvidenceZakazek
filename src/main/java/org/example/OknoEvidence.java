@@ -1,423 +1,471 @@
 package org.example;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.nio.file.Path;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 
+/**
+ * Okenní rozhraní k evidenci zakázek.
+ * <p>
+ * S daty nepracuje přímo – všechno dělá přes {@link Evidence} a {@link Uloz},
+ * stejně jako konzolová {@link Main}. Tahle třída jen zobrazuje a sbírá vstup.
+ */
 public class OknoEvidence {
+
+    private static final DateTimeFormatter FORMAT = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+
+    private static final String[] FILTRY = {
+            "Všechny zakázky", "Poptávka", "Rozpracováno", "Hotovo", "Zaplaceno", "Po termínu"
+    };
+
+    private final Evidence evidence;
+    private final Uloz uloz;
+    private final Vystup vystup = new OknovyVystup();
+
+    private final JFrame okno = new JFrame("Evidence zakázek");
+
+    private final DefaultTableModel modelZakazek = new NeupravitelnyModel(
+            new String[]{"Číslo", "Zákazník", "Popis", "Cena", "Stav", "Zadáno", "Odevzdat do"});
+    private final JTable tabulkaZakazek = new JTable(modelZakazek);
+    private final JComboBox<String> filtr = new JComboBox<>(FILTRY);
+
+    private final DefaultTableModel modelZakazniku = new NeupravitelnyModel(
+            new String[]{"Číslo", "Jméno", "Telefon", "Zakázek"});
+    private final JTable tabulkaZakazniku = new JTable(modelZakazniku);
+
+    private final JLabel prehledStavy = new JLabel();
+    private final JLabel prehledHotove = new JLabel();
+    private final JLabel prehledZaplacene = new JLabel();
+    private final JLabel prehledPoTerminu = new JLabel();
+
+    public OknoEvidence(Evidence evidence, Uloz uloz) {
+        this.evidence = evidence;
+        this.uloz = uloz;
+        postavOkno();
+        obnovVse();
+    }
+
+    // ------------------------------------------------------------------ start
+
     public static void main(String[] args) {
-        SouboroveUloziste uloziste = new SouboroveUloziste(Path.of("zakazky.csv"));
-        JFrame okno = new JFrame("Evidence");
-        okno.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        okno.setSize(400, 300);
-        okno.setLocationRelativeTo(null);
-        Evidence evidence;
-        Vystup vystup = new OknovyVystup();
+        SwingUtilities.invokeLater(() -> {
+            nastavVzhled();
+
+            Uloz uloz = new SouboroveUloziste(Path.of("zakazky.csv"), Path.of("zakaznici.csv"));
+
+            Evidence evidence;
+            try {
+                evidence = new Evidence(uloz, Clock.systemDefaultZone());
+            } catch (IllegalStateException | IllegalArgumentException e) {
+                JOptionPane.showMessageDialog(null, e.getMessage(),
+                        "Data se nepodařilo načíst", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            new OknoEvidence(evidence, uloz).zobraz();
+        });
+    }
+
+    private static void nastavVzhled() {
         try {
-            evidence = new Evidence(uloziste, Clock.systemDefaultZone());
-        } catch (IllegalArgumentException e) {
-            vystup.zobraz(e.getMessage());
+            for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            // vzhled není podstatný – když se nepovede, poběží výchozí
+        }
+    }
+
+    public void zobraz() {
+        okno.setVisible(true);
+    }
+
+    // ----------------------------------------------------------------- skládání
+
+    private void postavOkno() {
+        okno.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        okno.setMinimumSize(new Dimension(900, 520));
+        okno.setLocationByPlatform(true);
+
+        JTabbedPane zalozky = new JTabbedPane();
+        zalozky.addTab("Zakázky", panelZakazek());
+        zalozky.addTab("Zákazníci", panelZakazniku());
+        zalozky.addTab("Přehled", panelPrehledu());
+        zalozky.addChangeListener(e -> obnovVse());
+
+        okno.setContentPane(zalozky);
+        okno.pack();
+    }
+
+    private JPanel panelZakazek() {
+        JPanel panel = new JPanel(new BorderLayout(0, 8));
+        panel.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
+
+        JPanel horni = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
+        horni.add(new JLabel("Zobrazit:"));
+        horni.add(filtr);
+        filtr.addActionListener(e -> obnovZakazky());
+        panel.add(horni, BorderLayout.NORTH);
+
+        pripravTabulku(tabulkaZakazek, new int[]{60, 160, 260, 80, 120, 100, 110});
+        panel.add(new JScrollPane(tabulkaZakazek), BorderLayout.CENTER);
+
+        JButton nova = new JButton("Nová zakázka");
+        JButton posun = new JButton("Posunout stav");
+        JButton zrus = new JButton("Zrušit zakázku");
+        nova.addActionListener(e -> novaZakazka());
+        posun.addActionListener(e -> posunStav());
+        zrus.addActionListener(e -> zrusZakazku());
+        panel.add(radekTlacitek(nova, posun, zrus), BorderLayout.SOUTH);
+
+        return panel;
+    }
+
+    private JPanel panelZakazniku() {
+        JPanel panel = new JPanel(new BorderLayout(0, 8));
+        panel.setBorder(BorderFactory.createEmptyBorder(12, 12, 12, 12));
+
+        pripravTabulku(tabulkaZakazniku, new int[]{60, 260, 200, 90});
+        panel.add(new JScrollPane(tabulkaZakazniku), BorderLayout.CENTER);
+
+        JButton novy = new JButton("Nový zákazník");
+        JButton zrus = new JButton("Zrušit zákazníka");
+        novy.addActionListener(e -> novyZakaznik());
+        zrus.addActionListener(e -> zrusZakaznika());
+        panel.add(radekTlacitek(novy, zrus), BorderLayout.SOUTH);
+
+        return panel;
+    }
+
+    private JPanel panelPrehledu() {
+        JPanel obsah = new JPanel();
+        obsah.setLayout(new BoxLayout(obsah, BoxLayout.Y_AXIS));
+        obsah.setBorder(BorderFactory.createEmptyBorder(24, 24, 24, 24));
+
+        JLabel titulek = new JLabel("Souhrn");
+        titulek.setFont(titulek.getFont().deriveFont(Font.BOLD, 15f));
+
+        obsah.add(zarovnane(titulek));
+        obsah.add(Box.createVerticalStrut(16));
+        obsah.add(zarovnane(prehledStavy));
+        obsah.add(Box.createVerticalStrut(16));
+        obsah.add(zarovnane(prehledHotove));
+        obsah.add(Box.createVerticalStrut(6));
+        obsah.add(zarovnane(prehledZaplacene));
+        obsah.add(Box.createVerticalStrut(6));
+        obsah.add(zarovnane(prehledPoTerminu));
+
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.add(obsah, BorderLayout.NORTH);
+        return panel;
+    }
+
+    private JComponent zarovnane(JComponent komponenta) {
+        komponenta.setAlignmentX(Component.LEFT_ALIGNMENT);
+        return komponenta;
+    }
+
+    private JPanel radekTlacitek(JButton... tlacitka) {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
+        for (JButton t : tlacitka) {
+            panel.add(t);
+        }
+        return panel;
+    }
+
+    private void pripravTabulku(JTable tabulka, int[] sirky) {
+        tabulka.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        tabulka.setRowHeight(24);
+        tabulka.setAutoCreateRowSorter(true);
+        tabulka.getTableHeader().setReorderingAllowed(false);
+        for (int i = 0; i < sirky.length; i++) {
+            tabulka.getColumnModel().getColumn(i).setPreferredWidth(sirky[i]);
+        }
+    }
+
+    // --------------------------------------------------------------- obnovování
+
+    private void obnovVse() {
+        obnovZakazky();
+        obnovZakazniky();
+        obnovPrehled();
+    }
+
+    private void obnovZakazky() {
+        modelZakazek.setRowCount(0);
+        for (Zakazka z : vybraneZakazky()) {
+            modelZakazek.addRow(new Object[]{
+                    z.getId(), z.getJmeno(), z.getPopis(), z.getCena() + " Kč",
+                    z.getStav(), z.getVytvoreni().format(FORMAT), z.getOdevzdani().format(FORMAT)
+            });
+        }
+    }
+
+    private List<Zakazka> vybraneZakazky() {
+        String volba = (String) filtr.getSelectedItem();
+
+        List<Zakazka> vysledek = new ArrayList<>();
+        if ("Po termínu".equals(volba)) {
+            vysledek.addAll(evidence.zakazkyPoTerminu());
+        } else {
+            Stav hledany = stavPodleVolby(volba);
+            for (Zakazka z : evidence.getZakazka().values()) {
+                if (hledany == null || z.getStav() == hledany) {
+                    vysledek.add(z);
+                }
+            }
+        }
+        vysledek.sort(Comparator.comparingInt(Zakazka::getId));
+        return vysledek;
+    }
+
+    private Stav stavPodleVolby(String volba) {
+        if ("Poptávka".equals(volba)) return Stav.POPTAVKA;
+        if ("Rozpracováno".equals(volba)) return Stav.ROZPRACOVANO;
+        if ("Hotovo".equals(volba)) return Stav.HOTOVO;
+        if ("Zaplaceno".equals(volba)) return Stav.ZAPLACENO;
+        return null;
+    }
+
+    private void obnovZakazniky() {
+        modelZakazniku.setRowCount(0);
+        for (Zakaznik z : serazeniZakaznici()) {
+            modelZakazniku.addRow(new Object[]{
+                    z.getId(), z.getJmeno(), z.getTelefon(), pocetZakazek(z.getId())
+            });
+        }
+    }
+
+    private List<Zakaznik> serazeniZakaznici() {
+        List<Zakaznik> seznam = new ArrayList<>(evidence.getZakaznik().values());
+        seznam.sort(Comparator.comparingInt(Zakaznik::getId));
+        return seznam;
+    }
+
+    private int pocetZakazek(int idZakaznika) {
+        int pocet = 0;
+        for (Zakazka z : evidence.getZakazka().values()) {
+            if (z.getZakaznikId() == idZakaznika) {
+                pocet++;
+            }
+        }
+        return pocet;
+    }
+
+    private void obnovPrehled() {
+        Map<Stav, Integer> pocty = evidence.pocetZakazekVJednotlivemStavu();
+
+        StringBuilder sb = new StringBuilder("<html>");
+        for (Stav s : Stav.values()) {
+            sb.append(s).append(": ").append(pocty.getOrDefault(s, 0)).append("<br>");
+        }
+        sb.append("</html>");
+
+        prehledStavy.setText(sb.toString());
+        prehledHotove.setText("Součet cen hotových, ale nezaplacených zakázek: "
+                + evidence.soucetCenHotovychZakazek() + " Kč");
+        prehledZaplacene.setText("Součet cen zaplacených zakázek: "
+                + evidence.soucetCenZaplacenychZakazek() + " Kč");
+        prehledPoTerminu.setText("Zakázek po termínu odevzdání: "
+                + evidence.soucetZakazekPoTerminu());
+    }
+
+    // ------------------------------------------------------------------- akce
+
+    private void novaZakazka() {
+        List<Zakaznik> zakaznici = serazeniZakaznici();
+        if (zakaznici.isEmpty()) {
+            vystup.zobraz("Nejdřív přidej aspoň jednoho zákazníka.");
             return;
         }
 
-        JButton konec = new JButton("Konec");
-        okno.add(konec, BorderLayout.SOUTH);
-        konec.addActionListener(e -> {
-            System.exit(0);
-        });
+        JComboBox<Zakaznik> vyberZakaznika = new JComboBox<>(zakaznici.toArray(new Zakaznik[0]));
+        vyberZakaznika.setRenderer(new ZakaznikRenderer());
+        JTextField popis = new JTextField(18);
+        JTextField cena = new JTextField(18);
+        JTextField datum = new JTextField(18);
 
-        CardLayout menuKarty = new CardLayout();
-        JPanel upravaZakazek = new JPanel(new GridBagLayout());
-        upravaZakazek.setLayout(new GridLayout(0, 1, 0, 5));
-        JPanel vypisInformaci = new JPanel(new GridBagLayout());
-        vypisInformaci.setLayout(new GridLayout(0, 1, 0, 5));
-        JPanel vypisZakazek = new JPanel();
-        vypisZakazek.setLayout(new GridLayout(0, 1, 0, 5));
-        JPanel menu = new JPanel(menuKarty);
+        JPanel formular = formular(
+                "Zákazník", vyberZakaznika,
+                "Popis", popis,
+                "Cena (Kč)", cena,
+                "Odevzdat do (dd.MM.yyyy)", datum);
 
-        JButton pridatZakazku = new JButton("Přidat zakázku");
-        JButton odebratZakazku = new JButton("Odebrat zakázku");
-        JButton zmenitStavZakazky = new JButton("Změnit stav");
-        JButton dalsi1 = new JButton("Další");
-        upravaZakazek.add(pridatZakazku);
-        upravaZakazek.add(odebratZakazku);
-        upravaZakazek.add(zmenitStavZakazky);
-        upravaZakazek.add(dalsi1);
+        if (!potvrzeno(formular, "Nová zakázka")) {
+            return;
+        }
 
-        JButton pocetZakazekVJednotliveStavu = new JButton("Počet zakázek v jednotlivém stavu");
-        JButton pocetZakazekPoTerminu = new JButton("Počet zakázek po termínu");
-        JButton soucetCenHotovychZakazek = new JButton("Součet cen hotových zakázek");
-        JButton soucetCenZaplacenychZakazek = new JButton("Součet cen zaplacených zakázek");
-        JButton dalsi2 = new JButton("Další");
-        vypisInformaci.add(pocetZakazekVJednotliveStavu);
-        vypisInformaci.add(pocetZakazekPoTerminu);
-        vypisInformaci.add(soucetCenHotovychZakazek);
-        vypisInformaci.add(soucetCenZaplacenychZakazek);
-        vypisInformaci.add(dalsi2);
+        try {
+            Zakaznik zakaznik = (Zakaznik) vyberZakaznika.getSelectedItem();
+            int castka = Integer.parseInt(cena.getText().trim());
+            LocalDate odevzdani = LocalDate.parse(datum.getText().trim(), FORMAT);
 
-        JButton vypisVsechnZakazek = new JButton("Vypsat všechny zakázky");
-        JButton vypisZakazekVJednotlivemStavu = new JButton("Vypsat zakázky v jedotlivém stavu");
-        JButton vypisZakazekPoTerminuKtereNejsouHotove = new JButton("Nepřipravené zakázyk po termínu");
-        JButton dalsi3 = new JButton("Další");
-        vypisZakazek.add(vypisVsechnZakazek);
-        vypisZakazek.add(vypisZakazekVJednotlivemStavu);
-        vypisZakazek.add(vypisZakazekPoTerminuKtereNejsouHotove);
-        vypisZakazek.add(dalsi3);
+            int cislo = evidence.pridatZakazku(zakaznik.getId(), popis.getText().trim(), castka, odevzdani);
+            uloz.ulozZakazku(evidence.getZakazka().get(cislo));
 
-        CardLayout stredKarty = new CardLayout();
-        JPanel stred = new JPanel(stredKarty);
-        JPanel uvod = new JPanel();
-        JPanel pridatZakazkuPanel = new JPanel();
-        pridatZakazkuPanel.setLayout(new GridLayout(0, 1, 0, 5));
-        JPanel odebratZakazkuPanel = new JPanel();
-        odebratZakazkuPanel.setLayout(new GridLayout(0, 1, 0, 5));
-        JPanel posunoutStavPanel = new JPanel();
-        posunoutStavPanel.setLayout(new GridLayout(0, 1, 0, 5));
-        JPanel pocetZakazekVJednotlivemStavuPanel = new JPanel();
-        pocetZakazekVJednotlivemStavuPanel.setLayout(new GridLayout(0, 1, 0, 5));
-        JPanel pocetZakazekPoTerminuPanel = new JPanel();
-        JPanel soucetCenHotovychZakazekPanel = new JPanel();
-        JPanel soucetCenZaplacenychZakazekPanel = new JPanel();
-        JPanel vypisVsechZakazekPanel = new JPanel();
-        vypisVsechZakazekPanel.setLayout(new GridLayout(0, 1, 0, 5));
-        JPanel vypisZakazekVJednotlivemStavuZaklad = new JPanel();
-        vypisZakazekVJednotlivemStavuZaklad.setLayout(new GridLayout(0, 1, 0, 5));
-        JPanel vypisZakazekPoTerminuKtereNejsouHotovePanel = new JPanel();
-        stred.add(uvod, "uvod");
-        stred.add(pridatZakazkuPanel, "pridatZakazkuPanel");
-        stred.add(odebratZakazkuPanel, "odebratZakazkuPanel");
-        stred.add(posunoutStavPanel, "posunoutStavPanel");
-        stred.add(pocetZakazekVJednotlivemStavuPanel, "pocetZakazekVJednotlivemStavuPanel");
-        stred.add(pocetZakazekPoTerminuPanel, "pocetZakazekPoTerminuPanel");
-        stred.add(soucetCenHotovychZakazekPanel, "soucetCenHotovychZakazekPanel");
-        stred.add(soucetCenZaplacenychZakazekPanel, "soucetCenZaplacenychZakazekPanel");
-        stred.add(vypisVsechZakazekPanel, "vypisVsechZakazekPanel");
-        stred.add(vypisZakazekVJednotlivemStavuZaklad, "vypisZakazekVJednotlivemStavuZaklad");
-        stred.add(vypisZakazekPoTerminuKtereNejsouHotovePanel, "vypisZakazekPoTerminuKtereNejsouHotovePanel");
-        okno.add(stred, BorderLayout.CENTER);
+            obnovVse();
+            vystup.zobraz("Zakázka byla přidána pod číslem " + cislo + ".");
+        } catch (NumberFormatException e) {
+            vystup.zobraz("Cena musí být číslo.");
+        } catch (DateTimeParseException e) {
+            vystup.zobraz("Datum musí být ve tvaru dd.MM.yyyy.");
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            vystup.zobraz(e.getMessage());
+        }
+    }
 
-        //PŘIDAT ZAKÁZKU
+    private void posunStav() {
+        Integer cislo = vybraneCislo(tabulkaZakazek, "Vyber v tabulce zakázku, které chceš posunout stav.");
+        if (cislo == null) {
+            return;
+        }
+        try {
+            ZakazkaService.posunStav(vystup, evidence, cislo, uloz);
+            obnovVse();
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            vystup.zobraz(e.getMessage());
+        }
+    }
 
-        JTextField jmenoPridatZakazku = new JTextField(10);
-        JTextField popisPridatZakazku = new JTextField(10);
-        JTextField cenaPridatZakazku = new JTextField(10);
-        JTextField datumPridatZakazku = new JTextField(10);
-        JButton potvrditPridatZakazku = new JButton("Potvrdit");
-        JLabel jmenoNapoveda = new JLabel("Jméno");
-        JLabel popisNapoveda = new JLabel("Popis");
-        JLabel cenaNapoveda = new JLabel("Cena");
-        JLabel datumNapoveda = new JLabel("Datum (dd.MM.yyyy)");
-        pridatZakazkuPanel.add(jmenoNapoveda);
-        pridatZakazkuPanel.add(jmenoPridatZakazku);
-        pridatZakazkuPanel.add(popisNapoveda);
-        pridatZakazkuPanel.add(popisPridatZakazku);
-        pridatZakazkuPanel.add(cenaNapoveda);
-        pridatZakazkuPanel.add(cenaPridatZakazku);
-        pridatZakazkuPanel.add(datumNapoveda);
-        pridatZakazkuPanel.add(datumPridatZakazku);
-        pridatZakazkuPanel.add(potvrditPridatZakazku);
-        DateTimeFormatter format = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+    private void zrusZakazku() {
+        Integer cislo = vybraneCislo(tabulkaZakazek, "Vyber v tabulce zakázku, kterou chceš zrušit.");
+        if (cislo == null) {
+            return;
+        }
+        if (!potvrzeniAno("Opravdu zrušit zakázku číslo " + cislo + "?")) {
+            return;
+        }
+        try {
+            ZakazkaService.zrusZakazku(vystup, evidence, cislo, uloz);
+            obnovVse();
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            vystup.zobraz(e.getMessage());
+        }
+    }
 
-        pridatZakazku.addActionListener(e -> {
-            stredKarty.show(stred, "pridatZakazkuPanel");
-        });
+    private void novyZakaznik() {
+        JTextField jmeno = new JTextField(18);
+        JTextField telefon = new JTextField(18);
 
-        potvrditPridatZakazku.addActionListener(e -> {
-            try {
-                String jmeno = jmenoPridatZakazku.getText();
-                String popis = popisPridatZakazku.getText();
-                int cena = Integer.parseInt(cenaPridatZakazku.getText());
-                LocalDate datumOdevzdání = LocalDate.parse(datumPridatZakazku.getText(), format);
-                int cislo = evidence.pridatZakazku(jmeno, popis, cena, datumOdevzdání);
-                JOptionPane.showMessageDialog(okno, "Úspěšně jste přidal novou zakázku pod id " + cislo);
-                uloziste.uloz(evidence);
-                jmenoPridatZakazku.setText("");
-                popisPridatZakazku.setText("");
-                cenaPridatZakazku.setText("");
-                datumPridatZakazku.setText("");
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(okno, "Cena nesmí být nevyplněná a musí být zapsána číselně.");
-            } catch (DateTimeParseException ex) {
-                JOptionPane.showMessageDialog(okno, "Zadal jsi neplatné datum.");
-            } catch (IllegalArgumentException ex) {
-                JOptionPane.showMessageDialog(okno, ex.getMessage());
+        JPanel formular = formular("Jméno", jmeno, "Telefon", telefon);
+        if (!potvrzeno(formular, "Nový zákazník")) {
+            return;
+        }
+
+        try {
+            int cislo = evidence.pridatZakaznika(jmeno.getText().trim(), telefon.getText().trim());
+            uloz.pridejZakaznika(evidence.getZakaznik().get(cislo));
+
+            obnovVse();
+            vystup.zobraz("Zákazník byl přidán pod číslem " + cislo + ".");
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            vystup.zobraz(e.getMessage());
+        }
+    }
+
+    private void zrusZakaznika() {
+        Integer cislo = vybraneCislo(tabulkaZakazniku, "Vyber v tabulce zákazníka, kterého chceš zrušit.");
+        if (cislo == null) {
+            return;
+        }
+        if (!potvrzeniAno("Opravdu zrušit zákazníka číslo " + cislo + "?")) {
+            return;
+        }
+        try {
+            if (evidence.zrusZakaznika(cislo)) {
+                uloz.odeberZakaznika(cislo);
+                obnovVse();
+                vystup.zobraz("Zákazník byl zrušen.");
+            } else {
+                vystup.zobraz("Zákazníka nelze zrušit – buď neexistuje, nebo má ještě zakázku.");
             }
-        });
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            vystup.zobraz(e.getMessage());
+        }
+    }
 
-        //ODEBRAT ZAKÁZKU
+    // ----------------------------------------------------------------- pomocné
 
-        JLabel jmenoHledaneZakazkyLabel = new JLabel("ID zakázky");
-        JTextField jmenoHledaneZakazky = new JTextField(10);
-        JButton hledatZakazku = new JButton("Odebrat");
-        odebratZakazkuPanel.add(jmenoHledaneZakazkyLabel);
-        odebratZakazkuPanel.add(jmenoHledaneZakazky);
-        odebratZakazkuPanel.add(hledatZakazku);
+    /** Vrátí číslo z prvního sloupce vybraného řádku, nebo null (a upozorní), když nic vybrané není. */
+    private Integer vybraneCislo(JTable tabulka, String kdyzNicNeniVybrano) {
+        int radek = tabulka.getSelectedRow();
+        if (radek < 0) {
+            vystup.zobraz(kdyzNicNeniVybrano);
+            return null;
+        }
+        return (Integer) tabulka.getValueAt(radek, 0);
+    }
 
-        odebratZakazku.addActionListener(e -> {
-            stredKarty.show(stred, "odebratZakazkuPanel");
-        });
+    /** Postaví formulář ze střídajících se dvojic popisek – pole. */
+    private JPanel formular(Object... popiskyAPole) {
+        JPanel panel = new JPanel(new GridBagLayout());
+        GridBagConstraints c = new GridBagConstraints();
+        c.insets = new Insets(4, 4, 4, 4);
+        c.anchor = GridBagConstraints.WEST;
 
-        hledatZakazku.addActionListener(e -> {
-            int cislo = ZakazkaService.najitZakazku(new OknovyVystup(), evidence, jmenoHledaneZakazky.getText());
-            if (cislo != -1) {
-                try {
-                    ZakazkaService.zrusZakazku(new OknovyVystup(), evidence, cislo, uloziste);
-                } catch (IllegalArgumentException ex) {
-                    vystup.zobraz(ex.getMessage());
-                }
+        for (int i = 0; i < popiskyAPole.length; i += 2) {
+            c.gridx = 0;
+            c.gridy = i / 2;
+            panel.add(new JLabel((String) popiskyAPole[i] + ":"), c);
+            c.gridx = 1;
+            panel.add((Component) popiskyAPole[i + 1], c);
+        }
+        return panel;
+    }
+
+    private boolean potvrzeno(JPanel formular, String titulek) {
+        int volba = JOptionPane.showConfirmDialog(okno, formular, titulek,
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        return volba == JOptionPane.OK_OPTION;
+    }
+
+    private boolean potvrzeniAno(String otazka) {
+        int volba = JOptionPane.showConfirmDialog(okno, otazka, "Potvrzení",
+                JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+        return volba == JOptionPane.YES_OPTION;
+    }
+
+    /** Tabulka, do které uživatel nemůže psát – data se mění jen přes evidenci. */
+    private static class NeupravitelnyModel extends DefaultTableModel {
+        NeupravitelnyModel(String[] sloupce) {
+            super(sloupce, 0);
+        }
+
+        @Override
+        public boolean isCellEditable(int radek, int sloupec) {
+            return false;
+        }
+
+        /** Bez tohohle by se sloupec s čísly řadil jako text: 1, 10, 2, 3. */
+        @Override
+        public Class<?> getColumnClass(int sloupec) {
+            Object hodnota = getRowCount() > 0 ? getValueAt(0, sloupec) : null;
+            return hodnota == null ? Object.class : hodnota.getClass();
+        }
+    }
+
+    /** Aby se v rozbalovacím seznamu ukazovalo jméno zákazníka, a ne org.example.Zakaznik@1a2b3c. */
+    private static class ZakaznikRenderer extends DefaultListCellRenderer {
+        @Override
+        public Component getListCellRendererComponent(JList<?> seznam, Object hodnota,
+                                                      int index, boolean vybrano, boolean fokus) {
+            super.getListCellRendererComponent(seznam, hodnota, index, vybrano, fokus);
+            if (hodnota instanceof Zakaznik z) {
+                setText(z.getId() + " – " + z.getJmeno());
             }
-            jmenoHledaneZakazky.setText("");
-        });
-
-        //ZMĚNIT STAV ZAKAZKY
-
-        JLabel jmenoHledaneZakazkyLabel2 = new JLabel("ID zakázky");
-        JTextField jmenoHledaneZakazky2 = new JTextField(10);
-        posunoutStavPanel.add(jmenoHledaneZakazkyLabel2);
-        posunoutStavPanel.add(jmenoHledaneZakazky2);
-        JButton zmenit = new JButton("Posunout stav");
-        posunoutStavPanel.add(zmenit);
-
-        zmenitStavZakazky.addActionListener(e -> {
-            stredKarty.show(stred, "posunoutStavPanel");
-        });
-
-        zmenit.addActionListener(e -> {
-            int cislo = ZakazkaService.najitZakazku(new OknovyVystup(), evidence, jmenoHledaneZakazky2.getText());
-            if (cislo != -1) {
-                try {
-                    ZakazkaService.posunStav(new OknovyVystup(), evidence, cislo, uloziste);
-                } catch (IllegalArgumentException ex) {
-                    vystup.zobraz(ex.getMessage());
-                }
-            }
-            jmenoHledaneZakazky2.setText("");
-        });
-
-        //POCET ZAKÁZEK V JEDNOTLIVÉM STAVU
-
-        JLabel pocetZadano = new JLabel();
-        JLabel pocetRozpracovano = new JLabel();
-        JLabel pocetHotovo = new JLabel();
-        JLabel pocetZaplaceno = new JLabel();
-        pocetZakazekVJednotlivemStavuPanel.add(pocetZadano);
-        pocetZakazekVJednotlivemStavuPanel.add(pocetRozpracovano);
-        pocetZakazekVJednotlivemStavuPanel.add(pocetHotovo);
-        pocetZakazekVJednotlivemStavuPanel.add(pocetZaplaceno);
-        pocetZakazekVJednotliveStavu.addActionListener(e -> {
-            stredKarty.show(stred, "pocetZakazekVJednotlivemStavuPanel");
-            Map<Stav, Integer> pocetZakazekVJednotlivemStavuPole = evidence.pocetZakazekVJednotlivemStavu();
-            pocetZadano.setText("Zakázek ve stavu zadáno: " + pocetZakazekVJednotlivemStavuPole.get(Stav.POPTAVKA));
-            pocetRozpracovano.setText("Zakázek ve stavu rozpracováno: " + pocetZakazekVJednotlivemStavuPole.get(Stav.ROZPRACOVANO));
-            pocetHotovo.setText("Zakázek ve stavu hotovo: " + pocetZakazekVJednotlivemStavuPole.get(Stav.HOTOVO));
-            pocetZaplaceno.setText("Zakázek ve stavu zaplaceno: " + pocetZakazekVJednotlivemStavuPole.get(Stav.ZAPLACENO));
-        });
-
-        //POCET ZAKAZEK PO TERMINU ODEVZADANI
-
-        JLabel pocetZakazekPoTerminuLabel = new JLabel();
-        pocetZakazekPoTerminuPanel.add(pocetZakazekPoTerminuLabel);
-        pocetZakazekPoTerminu.addActionListener(e -> {
-            stredKarty.show(stred, "pocetZakazekPoTerminuPanel");
-            pocetZakazekPoTerminuLabel.setText("Počet zakázek po termínu odevzdání: " + evidence.soucetZakazekPoTerminu());
-        });
-
-        //SOUCET CEN HOTOVYCH ZAKAZEK
-
-        JLabel soucetCenHotovychZakazekLabel = new JLabel();
-        soucetCenHotovychZakazekPanel.add(soucetCenHotovychZakazekLabel);
-        soucetCenHotovychZakazek.addActionListener(e -> {
-            stredKarty.show(stred, "soucetCenHotovychZakazekPanel");
-            soucetCenHotovychZakazekLabel.setText("Součet cen hotových zakázek: " + evidence.soucetCenHotovychZakazek());
-        });
-
-        //SOUCET CEN ZAPLACENYCH ZAKAZEK
-
-        JLabel soucetCenZaplacenychZakazekLabel = new JLabel();
-        soucetCenZaplacenychZakazekPanel.add(soucetCenZaplacenychZakazekLabel);
-        soucetCenZaplacenychZakazek.addActionListener(e -> {
-            stredKarty.show(stred, "soucetCenZaplacenychZakazekPanel");
-            soucetCenZaplacenychZakazekLabel.setText("Součet cen zaplacených zakázek: " + evidence.soucetCenZaplacenychZakazek());
-        });
-
-        //VYPIS VSECH ZAKAZEK
-
-        JTextArea vypisVsechZakazekArea = new JTextArea(20, 15);
-        JScrollPane vypisVsechZakazekAreaScroll = new JScrollPane(vypisVsechZakazekArea);
-        vypisVsechZakazekArea.setEditable(false);
-        vypisVsechZakazekPanel.add(vypisVsechZakazekAreaScroll, BorderLayout.CENTER);
-        vypisVsechnZakazek.addActionListener(e -> {
-            stredKarty.show(stred, "vypisVsechZakazekPanel");
-            vypisVsechZakazekArea.setText("");
-            for (Zakazka z : evidence.getZakazka().values()) {
-                vypisVsechZakazekArea.append(z.getId() + "\n");
-                vypisVsechZakazekArea.append(z.getJmeno() + "\n");
-                vypisVsechZakazekArea.append(z.getPopis() + "\n");
-                vypisVsechZakazekArea.append(z.getCena() + "\n");
-                vypisVsechZakazekArea.append(z.getStav() + "\n");
-                vypisVsechZakazekArea.append(z.getVytvoreni() + "\n");
-                vypisVsechZakazekArea.append(z.getOdevzdani() + "\n");
-            }
-        });
-
-        //VYPIS ZAKAZEK V JEDNOTLIVEM STAVU
-
-        CardLayout vypisZakazekVJednotlivemStavuCard = new CardLayout();
-        JPanel vypisZakazekVJednotlivemStavuPanelCard = new JPanel(vypisZakazekVJednotlivemStavuCard);
-        JPanel vypisZakazekVJednotlivemStavuMenu = new JPanel();
-        vypisZakazekVJednotlivemStavuZaklad.add(vypisZakazekVJednotlivemStavuMenu);
-        vypisZakazekVJednotlivemStavuZaklad.add(vypisZakazekVJednotlivemStavuPanelCard);
-        JPanel uvod2 = new JPanel();
-        JPanel vypisZakazekVJednotlivemStavuPanelPoptavka = new JPanel();
-        vypisZakazekVJednotlivemStavuPanelPoptavka.setLayout(new GridLayout(0, 1, 0, 5));
-        JPanel vypisZakazekVJednotlivemStavuPanelRozpracovano = new JPanel();
-        vypisZakazekVJednotlivemStavuPanelRozpracovano.setLayout(new GridLayout(0, 1, 0, 5));
-        JPanel vypisZakazekVJednotlivemStavuPanelHotovo = new JPanel();
-        vypisZakazekVJednotlivemStavuPanelHotovo.setLayout(new GridLayout(0, 1, 0, 5));
-        JPanel vypisZakazekVJednotlivemStavuPanelZaplaceno = new JPanel();
-        vypisZakazekVJednotlivemStavuPanelZaplaceno.setLayout(new GridLayout(0, 1, 0, 5));
-        vypisZakazekVJednotlivemStavuPanelPoptavka.setLayout(new GridLayout(0, 1, 0, 5));
-        vypisZakazekVJednotlivemStavuPanelCard.add(uvod2, "uvod2");
-        vypisZakazekVJednotlivemStavuPanelCard.add(vypisZakazekVJednotlivemStavuPanelPoptavka, "vypisZakazekVJednotlivemStavuPanelPoptavka");
-        vypisZakazekVJednotlivemStavuPanelCard.add(vypisZakazekVJednotlivemStavuPanelRozpracovano, "vypisZakazekVJednotlivemStavuPanelRozpracovano");
-        vypisZakazekVJednotlivemStavuPanelCard.add(vypisZakazekVJednotlivemStavuPanelHotovo, "vypisZakazekVJednotlivemStavuPanelHotovo");
-        vypisZakazekVJednotlivemStavuPanelCard.add(vypisZakazekVJednotlivemStavuPanelZaplaceno, "vypisZakazekVJednotlivemStavuPanelZaplaceno");
-        JButton vypisPoptavka = new JButton("Poptávka");
-        JButton vypisRozpracovano = new JButton("Rozpracováno");
-        JButton vypisHotovo = new JButton("Hotovo");
-        JButton vypisZaplaceno = new JButton("Zaplaceno");
-        vypisZakazekVJednotlivemStavuMenu.add(vypisPoptavka);
-        vypisZakazekVJednotlivemStavuMenu.add(vypisRozpracovano);
-        vypisZakazekVJednotlivemStavuMenu.add(vypisHotovo);
-        vypisZakazekVJednotlivemStavuMenu.add(vypisZaplaceno);
-
-        vypisZakazekVJednotlivemStavu.addActionListener(e -> {
-            stredKarty.show(stred, "vypisZakazekVJednotlivemStavuZaklad");
-            vypisZakazekVJednotlivemStavuCard.show(vypisZakazekVJednotlivemStavuPanelCard, "vypisZakazekVJednotlivemStavuPanelPoptavka");
-        });
-
-        JTextArea vypisPoptavkaArea = new JTextArea(20, 15);
-        JScrollPane vypisPoptavkaAreaScroll = new JScrollPane(vypisPoptavkaArea);
-        vypisPoptavkaArea.setEditable(false);
-        vypisZakazekVJednotlivemStavuPanelPoptavka.add(vypisPoptavkaAreaScroll, BorderLayout.CENTER);
-        vypisPoptavka.addActionListener(e -> {
-            vypisZakazekVJednotlivemStavuCard.show(vypisZakazekVJednotlivemStavuPanelCard, "vypisZakazekVJednotlivemStavuPanelPoptavka");
-            vypisPoptavkaArea.setText("");
-            for (Zakazka z : evidence.getZakazka().values()) {
-                if (z.getStav() == Stav.POPTAVKA) {
-                    vypisPoptavkaArea.append(z.getId() + "\n");
-                    vypisPoptavkaArea.append(z.getJmeno() + "\n");
-                    vypisPoptavkaArea.append(z.getPopis() + "\n");
-                    vypisPoptavkaArea.append(z.getCena() + "\n");
-                    vypisPoptavkaArea.append(z.getStav() + "\n");
-                    vypisPoptavkaArea.append(z.getVytvoreni() + "\n");
-                    vypisPoptavkaArea.append(z.getOdevzdani() + "\n");
-                }
-            }
-        });
-
-        JTextArea vypisRozpracovanoArea = new JTextArea(20, 15);
-        JScrollPane vypisRozpracovanoAreaScroll = new JScrollPane(vypisRozpracovanoArea);
-        vypisRozpracovanoArea.setEditable(false);
-        vypisZakazekVJednotlivemStavuPanelRozpracovano.add(vypisRozpracovanoAreaScroll);
-        vypisRozpracovano.addActionListener(e -> {
-            vypisZakazekVJednotlivemStavuCard.show(vypisZakazekVJednotlivemStavuPanelCard, "vypisZakazekVJednotlivemStavuPanelRozpracovano");
-            vypisRozpracovanoArea.setText("");
-            for (Zakazka z : evidence.getZakazka().values()) {
-                if (z.getStav() == Stav.ROZPRACOVANO) {
-                    vypisRozpracovanoArea.append(z.getId() + "\n");
-                    vypisRozpracovanoArea.append(z.getJmeno() + "\n");
-                    vypisRozpracovanoArea.append(z.getPopis() + "\n");
-                    vypisRozpracovanoArea.append(z.getCena() + "\n");
-                    vypisRozpracovanoArea.append(z.getStav() + "\n");
-                    vypisRozpracovanoArea.append(z.getVytvoreni() + "\n");
-                    vypisRozpracovanoArea.append(z.getOdevzdani() + "\n");
-                }
-            }
-        });
-
-        JTextArea vypisHotovoArea = new JTextArea(20, 15);
-        JScrollPane vypisHotovoAreaScroll = new JScrollPane(vypisHotovoArea);
-        vypisHotovoArea.setEditable(false);
-        vypisZakazekVJednotlivemStavuPanelHotovo.add(vypisHotovoAreaScroll);
-        vypisHotovo.addActionListener(e -> {
-            vypisZakazekVJednotlivemStavuCard.show(vypisZakazekVJednotlivemStavuPanelCard, "vypisZakazekVJednotlivemStavuPanelHotovo");
-            vypisHotovoArea.setText("");
-            for (Zakazka z : evidence.getZakazka().values()) {
-                if (z.getStav() == Stav.HOTOVO) {
-                    vypisHotovoArea.append(z.getId() + "\n");
-                    vypisHotovoArea.append(z.getJmeno() + "\n");
-                    vypisHotovoArea.append(z.getPopis() + "\n");
-                    vypisHotovoArea.append(z.getCena() + "\n");
-                    vypisHotovoArea.append(z.getStav() + "\n");
-                    vypisHotovoArea.append(z.getVytvoreni() + "\n");
-                    vypisHotovoArea.append(z.getOdevzdani() + "\n");
-                }
-            }
-        });
-
-        JTextArea vypisZaplacenoArea = new JTextArea(20, 15);
-        JScrollPane vypisZaplacenoAreaScroll = new JScrollPane(vypisZaplacenoArea);
-        vypisZaplacenoArea.setEditable(false);
-        vypisZakazekVJednotlivemStavuPanelZaplaceno.add(vypisZaplacenoAreaScroll);
-        vypisZaplaceno.addActionListener(e -> {
-            vypisZakazekVJednotlivemStavuCard.show(vypisZakazekVJednotlivemStavuPanelCard, "vypisZakazekVJednotlivemStavuPanelZaplaceno");
-            vypisZaplacenoArea.setText("");
-            for (Zakazka z : evidence.getZakazka().values()) {
-                if (z.getStav() == Stav.ZAPLACENO) {
-                    vypisZaplacenoArea.append(z.getId() + "\n");
-                    vypisZaplacenoArea.append(z.getJmeno() + "\n");
-                    vypisZaplacenoArea.append(z.getPopis() + "\n");
-                    vypisZaplacenoArea.append(z.getCena() + "\n");
-                    vypisZaplacenoArea.append(z.getStav() + "\n");
-                    vypisZaplacenoArea.append(z.getVytvoreni() + "\n");
-                    vypisZaplacenoArea.append(z.getOdevzdani() + "\n");
-                }
-            }
-        });
-
-
-        //VYPIS ZAKAZEK PO TERMINU ODEVZDANI
-
-        JTextArea vypisZakazekPoTerminuArea = new JTextArea(20, 15);
-        JScrollPane vypisZakazekPoTerminuAreaScroll = new JScrollPane(vypisZakazekPoTerminuArea);
-        vypisZakazekPoTerminuArea.setEditable(false);
-        vypisZakazekPoTerminuKtereNejsouHotovePanel.add(vypisZakazekPoTerminuAreaScroll, BorderLayout.CENTER);
-        vypisZakazekPoTerminuKtereNejsouHotove.addActionListener(e -> {
-            stredKarty.show(stred, "vypisZakazekPoTerminuKtereNejsouHotovePanel");
-            vypisZakazekPoTerminuArea.setText("");
-            for (Zakazka z : evidence.zakazkyPoTerminu()) {
-                vypisZakazekPoTerminuArea.append(z.getId() + "\n");
-                vypisZakazekPoTerminuArea.append(z.getJmeno() + "\n");
-                vypisZakazekPoTerminuArea.append(z.getPopis() + "\n");
-                vypisZakazekPoTerminuArea.append(z.getCena() + "\n");
-                vypisZakazekPoTerminuArea.append(z.getStav() + "\n");
-                vypisZakazekPoTerminuArea.append(z.getVytvoreni() + "\n");
-                vypisZakazekPoTerminuArea.append(z.getOdevzdani() + "\n");
-            }
-        });
-
-        menu.add(upravaZakazek, "upravaZakazek");
-        menu.add(vypisInformaci, "vypisInformaci");
-        menu.add(vypisZakazek, "vypisZakazek");
-        okno.add(menu, BorderLayout.WEST);
-
-
-        dalsi1.addActionListener(e -> {
-            menuKarty.show(menu, "vypisInformaci");
-        });
-        dalsi2.addActionListener(e -> {
-            menuKarty.show(menu, "vypisZakazek");
-        });
-        dalsi3.addActionListener(e -> {
-            menuKarty.show(menu, "upravaZakazek");
-        });
-
-        okno.setVisible(true);
+            return this;
+        }
     }
 }

@@ -12,40 +12,59 @@ import java.util.Map;
 
 public class Evidence {
     private Map<Integer, Zakazka> zakazka = new HashMap<>();
-    private int key = 1;
+    private Map<Integer, Zakaznik> zakaznik = new HashMap<>();
+    private int keyZakazka = 1;
+    private int keyZakaznik = 1;
     private final Clock hodiny;
 
-    public Evidence () {
+    public Evidence() {
         this(Clock.systemDefaultZone());
     }
+
     public Evidence(Clock hodiny) {
         this.hodiny = hodiny;
     }
-    public Evidence (SouboroveUloziste uloziste, Clock hodiny) {
+
+    public Evidence(Uloz uloz, Clock hodiny) {
         this.hodiny = hodiny;
-        this.zakazka = uloziste.nacti();
+        this.zakaznik = uloz.nactiZakazniky();
+        this.zakazka = uloz.nactiZakazky(zakaznik);
         for (Zakazka z : zakazka.values()) {
-            key = Math.max(z.getId() + 1, key);
+            keyZakazka = Math.max(z.getId() + 1, keyZakazka);
+        }
+        for (Zakaznik z : zakaznik.values()) {
+            keyZakaznik = Math.max(z.getId() + 1, keyZakaznik);
         }
     }
 
-    public int pridatZakazku(String jmeno, String popis, int cena, LocalDate odevzdani) {
-            if (jmeno.isBlank() || jmeno.contains(";")) {
-                throw new IllegalArgumentException("Jméno klienta nesmí být prázdné a nesmí obsahovat ;.");
-            }
-            if (popis.isBlank() || popis.contains(";")) {
-                throw new IllegalArgumentException("Popis nesmí být prázdný a nesmí obsahovat ;.");
-            }
-            if (cena <= 0) {
-                throw new IllegalArgumentException("Cena nesmí být záporná.");
-            }
-            if (odevzdani.isBefore(LocalDate.now(hodiny))) {
-                throw new IllegalArgumentException("Datum odevzdání nemůže být před datem zadání.");
-            }
-            int cislo = key++;
-            Zakazka novaZakazka = new Zakazka(cislo, jmeno, popis, cena, Stav.POPTAVKA, LocalDate.now(hodiny), odevzdani);
-            zakazka.put(cislo, novaZakazka);
-                return cislo;
+    public int pridatZakazku(int id_zakaznika, String popis, int cena, LocalDate odevzdani) {
+        if (popis.isBlank() || popis.contains(";")) {
+            throw new IllegalArgumentException("Popis nesmí být prázdný a nesmí obsahovat ;.");
+        }
+        if (cena <= 0) {
+            throw new IllegalArgumentException("Cena nesmí být záporná.");
+        }
+        if (odevzdani.isBefore(LocalDate.now(hodiny))) {
+            throw new IllegalArgumentException("Datum odevzdání nemůže být před datem zadání.");
+        }
+        if (!zakaznik.containsKey(id_zakaznika)) {
+            throw new IllegalArgumentException("Zákazník neexistuje.");
+        }
+        int cislo = keyZakazka++;
+        Zakazka novaZakazka = new Zakazka(cislo, zakaznik.get(id_zakaznika), popis, cena, Stav.POPTAVKA, LocalDate.now(hodiny), odevzdani);
+        zakazka.put(cislo, novaZakazka);
+        return cislo;
+    }
+
+    public int pridatZakaznika(String jmeno, String telefon) {
+        int cislo = keyZakaznik++;
+        Zakaznik novyZakaznik = new Zakaznik(jmeno, telefon, cislo);
+        zakaznik.put(cislo, novyZakaznik);
+        return cislo;
+    }
+
+    public Map<Integer, Zakaznik> getZakaznik() {
+        return Map.copyOf(zakaznik);
     }
 
     public Map<Integer, Zakazka> getZakazka() {
@@ -67,7 +86,7 @@ public class Evidence {
             pocetZakazekVJednotlivemStavu.put(s, 0);
         }
         for (Zakazka z : zakazka.values()) {
-            pocetZakazekVJednotlivemStavu.put(z.getStav(), pocetZakazekVJednotlivemStavu.get(z.getStav())+1);
+            pocetZakazekVJednotlivemStavu.put(z.getStav(), pocetZakazekVJednotlivemStavu.get(z.getStav()) + 1);
         }
         return pocetZakazekVJednotlivemStavu;
     }
@@ -115,6 +134,19 @@ public class Evidence {
             }
         }
         return vysledek;
+    }
+
+    public boolean zrusZakaznika(int id) {
+        if (!zakaznik.containsKey(id)) {
+            return false;
+        }
+        for (Zakazka z : zakazka.values()) {
+            if (z.getZakaznikId() == id) {
+                return false;
+            }
+        }
+        zakaznik.remove(id);
+        return true;
     }
 }
 

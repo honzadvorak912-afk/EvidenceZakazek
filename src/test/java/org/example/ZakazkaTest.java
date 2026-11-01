@@ -18,30 +18,30 @@ import java.util.List;
 class EvidenceTest {
     @Test
     void posunoutStavTest() {
-        String jmeno = "pepa";
         String popis = "kolo";
         int cena = 500;
         LocalDate odevzdani = LocalDate.now().plusDays(5);
         Evidence evidence = new Evidence();
-        evidence.pridatZakazku(jmeno, popis, cena, odevzdani);
+        evidence.pridatZakaznika("Pepa", "777777777777");
+        evidence.pridatZakazku(1, popis, cena, odevzdani);
         evidence.posunoutStav(1);
         assertEquals(Stav.ROZPRACOVANO, evidence.getZakazka().get(1).getStav());
-        assertEquals("pepa", evidence.getZakazka().get(1).getJmeno());
+        assertEquals("Pepa", evidence.getZakazka().get(1).getJmeno());
         assertEquals(500, evidence.getZakazka().get(1).getCena());
     }
 
     @Test
     void soucetCenHotovychZakazekTest() {
-        String jmeno = "pepa";
         String popis = "kolo";
         int cena = 500;
-        String jmeno2 = "jirka";
         String popis2 = "auto";
         int cena2 = 1000;
         LocalDate odevzdani = LocalDate.now().plusDays(5);
         Evidence evidence = new Evidence();
-        evidence.pridatZakazku(jmeno, popis, cena, odevzdani);
-        evidence.pridatZakazku(jmeno2, popis2, cena2, odevzdani);
+        evidence.pridatZakaznika("Pepa", "777777777");
+        evidence.pridatZakaznika("Jirka", "777777777");
+        evidence.pridatZakazku(1, popis, cena, odevzdani);
+        evidence.pridatZakazku(2, popis2, cena2, odevzdani);
         evidence.posunoutStav(1);
         evidence.posunoutStav(1);
         evidence.posunoutStav(2);
@@ -51,17 +51,17 @@ class EvidenceTest {
 
     @Test
     void soucetCenZaplacenychZakazekTest() {
-        String jmeno = "pepa";
         String popis = "kolo";
         int cena = 500;
-        String jmeno2 = "jirka";
         String popis2 = "auto";
         int cena2 = 1000;
         LocalDate odevzdani1 = LocalDate.now().plusDays(5);
         LocalDate odevzdani2 = LocalDate.now().plusDays(5);
         Evidence evidence = new Evidence();
-        evidence.pridatZakazku(jmeno, popis, cena, odevzdani1);
-        evidence.pridatZakazku(jmeno2, popis2, cena2, odevzdani2);
+        evidence.pridatZakaznika("Pepa", "777777777");
+        evidence.pridatZakaznika("Jirka", "777777777");
+        evidence.pridatZakazku(1, popis, cena, odevzdani1);
+        evidence.pridatZakazku(2, popis2, cena2, odevzdani2);
         evidence.posunoutStav(1);
         evidence.posunoutStav(1);
         evidence.posunoutStav(1);
@@ -73,17 +73,17 @@ class EvidenceTest {
 
     @Test
     void soucetZakazekVJednotlivemStavuTest() {
-        String jmeno = "pepa";
         String popis = "kolo";
         int cena = 500;
-        String jmeno2 = "jirka";
         String popis2 = "auto";
         int cena2 = 1000;
         LocalDate odevzdani1 = LocalDate.now().plusDays(5);
         LocalDate odevzdani2 = LocalDate.now().plusDays(5);
         Evidence evidence = new Evidence();
-        evidence.pridatZakazku(jmeno, popis, cena, odevzdani1);
-        evidence.pridatZakazku(jmeno2, popis2, cena2, odevzdani2);
+        evidence.pridatZakaznika("Pepa", "777777777");
+        evidence.pridatZakaznika("Jirka", "777777777");
+        evidence.pridatZakazku(1, popis, cena, odevzdani1);
+        evidence.pridatZakazku(2, popis2, cena2, odevzdani2);
         evidence.posunoutStav(1);
         evidence.posunoutStav(1);
         evidence.posunoutStav(1);
@@ -100,9 +100,10 @@ class EvidenceTest {
     void soucetZakazekPoTerminuTest() {
         PosuvneHodiny hodiny = new PosuvneHodiny(Instant.parse("2026-01-01T12:00:00Z"));
         Evidence evidence = new Evidence(hodiny);
-
-        evidence.pridatZakazku("pepa", "kolo", 500, LocalDate.of(2026, 2, 1));
-        evidence.pridatZakazku("jirka", "auto", 1000, LocalDate.of(2026, 12, 1));
+        evidence.pridatZakaznika("Pepa", "777777777");
+        evidence.pridatZakaznika("Jirka", "777777777");
+        evidence.pridatZakazku(1, "kolo", 500, LocalDate.of(2026, 2, 1));
+        evidence.pridatZakazku(2, "auto", 1000, LocalDate.of(2026, 12, 1));
 
         assertEquals(0, evidence.soucetZakazekPoTerminu());
 
@@ -114,34 +115,34 @@ class EvidenceTest {
 
     @Test
     void zruseniZakazkyTest() {
-        String jmeno = "pepa";
         String popis = "kolo";
         int cena = 500;
-        String jmeno2 = "jirka";
         String popis2 = "auto";
         int cena2 = 1000;
         LocalDate odevzdani1 = LocalDate.now().plusDays(5);
         LocalDate odevzdani2 = LocalDate.now().plusDays(5);
         Evidence evidence = new Evidence();
-        evidence.pridatZakazku(jmeno, popis, cena, odevzdani1);
-        evidence.pridatZakazku(jmeno2, popis2, cena2, odevzdani2);
+        evidence.pridatZakaznika("Pepa", "777777777");
+        evidence.pridatZakaznika("Jirka", "777777777");
+        evidence.pridatZakazku(1, popis, cena, odevzdani1);
+        evidence.pridatZakazku(2, popis2, cena2, odevzdani2);
         evidence.zrusZakazku(1);
         assertEquals(1, evidence.getZakazka().size());
     }
 
     @Test
     void posunZeZaplacenoTest() {
-        String jmeno = "pepa";
         String popis = "kolo";
         int cena = 500;
-        String jmeno2 = "jirka";
         String popis2 = "auto";
         int cena2 = 1000;
         LocalDate odevzdani1 = LocalDate.now().plusDays(5);
         LocalDate odevzdani2 = LocalDate.now().plusDays(5);
         Evidence evidence = new Evidence();
-        evidence.pridatZakazku(jmeno, popis, cena, odevzdani1);
-        evidence.pridatZakazku(jmeno2, popis2, cena2, odevzdani2);
+        evidence.pridatZakaznika("Pepa", "777777777");
+        evidence.pridatZakaznika("Jirka", "777777777");
+        evidence.pridatZakazku(1, popis, cena, odevzdani1);
+        evidence.pridatZakazku(2, popis2, cena2, odevzdani2);
         evidence.posunoutStav(1);
         evidence.posunoutStav(1);
         evidence.posunoutStav(1);
@@ -153,12 +154,12 @@ class EvidenceTest {
 
     @Test
     void zruseniZaplaceneZakazkyTest() {
-        String jmeno = "pepa";
         String popis = "kolo";
         int cena = 500;
         LocalDate odevzdani1 = LocalDate.now().plusDays(5);
         Evidence evidence = new Evidence();
-        evidence.pridatZakazku(jmeno, popis, cena, odevzdani1);
+        evidence.pridatZakaznika("Pepa", "777777777");
+        evidence.pridatZakazku(1, popis, cena, odevzdani1);
         evidence.posunoutStav(1);
         evidence.posunoutStav(1);
         evidence.posunoutStav(1);
@@ -168,8 +169,6 @@ class EvidenceTest {
 
     @Test
     void zakazkaSNeplatnouHodnotouSeNepridalaTest() {
-        String jmenoSpatne = "";
-        String jmeno = "pepa";
         String popisSpatne = "";
         String popis = "kolo";
         int cenaSpatne = -1;
@@ -177,29 +176,29 @@ class EvidenceTest {
         LocalDate odevzdaniSpatne = LocalDate.now().minusDays(1);
         LocalDate odevzdani = LocalDate.now().plusDays(5);
         Evidence evidence = new Evidence();
-        assertThrows(IllegalArgumentException.class, () -> evidence.pridatZakazku(jmenoSpatne, popis, cena, odevzdani));
-        assertThrows(IllegalArgumentException.class, () -> evidence.pridatZakazku(jmeno, popisSpatne, cena, odevzdani));
-        assertThrows(IllegalArgumentException.class, () -> evidence.pridatZakazku(jmeno, popis, cenaSpatne, odevzdani));
-        assertThrows(IllegalArgumentException.class, () -> evidence.pridatZakazku(jmeno, popis, cena, odevzdaniSpatne));
+        assertThrows(IllegalArgumentException.class, () -> evidence.pridatZakazku(1, popis, cena, odevzdani));
+        assertThrows(IllegalArgumentException.class, () -> evidence.pridatZakazku(1, popisSpatne, cena, odevzdani));
+        assertThrows(IllegalArgumentException.class, () -> evidence.pridatZakazku(1, popis, cenaSpatne, odevzdani));
+        assertThrows(IllegalArgumentException.class, () -> evidence.pridatZakazku(1, popis, cena, odevzdaniSpatne));
         assertEquals(0, evidence.getZakazka().size());
     }
 
     @Test
     void zruseniZakazkyNezmeniIdTest() {
-        String jmeno = "pepa";
         String popis = "kolo";
         int cena = 500;
-        String jmeno2 = "jirka";
         String popis2 = "auto";
         int cena2 = 1000;
-        String jmeno3 = "Franta";
         String popis3 = "pracka";
         int cena3 = 2000;
         LocalDate odevzdani = LocalDate.now().plusDays(5);
         Evidence evidence = new Evidence();
-        evidence.pridatZakazku(jmeno, popis, cena, odevzdani);
-        evidence.pridatZakazku(jmeno2, popis2, cena2, odevzdani);
-        evidence.pridatZakazku(jmeno3, popis3, cena3, odevzdani);
+        evidence.pridatZakaznika("Pepa", "777777777");
+        evidence.pridatZakaznika("Jirka", "777777777");
+        evidence.pridatZakaznika("Tomáš", "777777777");
+        evidence.pridatZakazku(1, popis, cena, odevzdani);
+        evidence.pridatZakazku(2, popis2, cena2, odevzdani);
+        evidence.pridatZakazku(3, popis3, cena3, odevzdani);
         evidence.zrusZakazku(2);
         assertTrue(evidence.getZakazka().containsKey(1));
         assertTrue(evidence.getZakazka().containsKey(3));
@@ -208,12 +207,12 @@ class EvidenceTest {
 
     @Test
     void neexistujiciIdTest() {
-        String jmeno = "pepa";
         String popis = "kolo";
         int cena = 500;
         LocalDate odevzdani1 = LocalDate.now().plusDays(5);
         Evidence evidence = new Evidence();
-        evidence.pridatZakazku(jmeno, popis, cena, odevzdani1);
+        evidence.pridatZakaznika("Pepa", "777777777");
+        evidence.pridatZakazku(1, popis, cena, odevzdani1);
         assertFalse(evidence.posunoutStav(99));
         assertFalse(evidence.zrusZakazku(99));
         assertEquals(1, evidence.getZakazka().size());
@@ -222,27 +221,29 @@ class EvidenceTest {
 
     @Test
     void posunZeZaplacenoNejdeUzivatelDostaneZpravuTest() {
-        SouboroveUloziste uloziste = new SouboroveUloziste(Path.of("zakazky.csv"));
-        String jmeno = "pepa";
+        Uloz uloz = new SouboroveUloziste(Path.of("zakazkyTest.csv"), Path.of("zakazniciTest.csv"));
         String popis = "kolo";
         int cena = 500;
         LocalDate odevzdani1 = LocalDate.now().plusDays(5);
         Evidence evidence = new Evidence();
-        evidence.pridatZakazku(jmeno, popis, cena, odevzdani1);
+        evidence.pridatZakaznika("Pepa", "777777777");
+        evidence.pridatZakazku(1, popis, cena, odevzdani1);
         evidence.posunoutStav(1);
         evidence.posunoutStav(1);
         evidence.posunoutStav(1);
         SberacVystup sberac = new SberacVystup();
-        ZakazkaService.zrusZakazku(sberac, evidence, 1, uloziste);
+        ZakazkaService.zrusZakazku(sberac, evidence, 1, uloz);
         assertEquals(Stav.ZAPLACENO, evidence.getZakazka().get(1).getStav());
         assertEquals(List.of("Zakázku nebylo možné zrušit."), sberac.getZpravy());
     }
 
     @Test
     void ukladaniZakazekTest() {
-        Zakazka zakazka1 = new Zakazka(1, "Pepa", "Kolo", 500, Stav.POPTAVKA, LocalDate.now(), LocalDate.of(2026, 12, 10));
-        String radek = FormatZakazky.naRadek(zakazka1);
-        Zakazka zakazka2 = FormatZakazky.naZakazku(radek);
+        Map<Integer, Zakaznik> zakaznik = new HashMap<>();
+        zakaznik.put(1, new Zakaznik("Pepa", "774687938", 1));
+        Zakazka zakazka1 = new Zakazka(1, zakaznik.get(1), "Kolo", 500, Stav.POPTAVKA, LocalDate.now(), LocalDate.of(2026, 12, 10));
+        String radek = FormatZakazky.zakazkyNaRadek(zakazka1);
+        Zakazka zakazka2 = FormatZakazky.naZakazku(radek, zakaznik);
         assertEquals(zakazka1.getId(), zakazka2.getId());
         assertEquals(zakazka1.getJmeno(), zakazka2.getJmeno());
         assertEquals(zakazka1.getPopis(), zakazka2.getPopis());
@@ -253,34 +254,60 @@ class EvidenceTest {
 
     }
     @Test
-    void ulozeniNacteniZakazkyTest (@TempDir Path slozka) throws IOException {
-        Path soubor = slozka.resolve("zakazky.csv");
-        SouboroveUloziste uloziste = new SouboroveUloziste(soubor);
-        Evidence evidence = new Evidence(uloziste, Clock.systemDefaultZone());
-        evidence.pridatZakazku("Pepa", "Kolo", 500, LocalDate.of(2026, 12, 10));
-        evidence.pridatZakazku("Jirka", "auto", 8000, LocalDate.of(2026, 12, 10));
-        evidence.pridatZakazku("Karel", "motorka", 12000, LocalDate.of(2026, 12, 10));
-        evidence.pridatZakazku("Tomáš", "koloběžka", 2000, LocalDate.of(2026, 12, 10));
-        evidence.zrusZakazku(2);
-        uloziste.uloz(evidence);
-        Map<Integer, Zakazka> nactene = uloziste.nacti();
-        assertEquals(3, nactene.size());
-        assertFalse(evidence.getZakazka().containsKey(2));
-        uloziste.uloz(evidence);
+    void ulozeniNacteniZakazkyTest(@TempDir Path slozka) throws IOException {
+        Path soubor1 = slozka.resolve("zakazkyTest2.csv");
+        Path soubor2 = slozka.resolve("zakazniciTest2.csv");
+        Uloz uloz = new SouboroveUloziste(soubor1, soubor2);
+        Evidence evidence = new Evidence(uloz, Clock.systemDefaultZone());
 
-        Evidence druha = new Evidence(uloziste, Clock.systemDefaultZone());
+        int pepa = evidence.pridatZakaznika("Pepa", "11111111111");
+        uloz.pridejZakaznika(evidence.getZakaznik().get(pepa));
+        int jirka = evidence.pridatZakaznika("Jirka", "22222222");
+        uloz.pridejZakaznika(evidence.getZakaznik().get(jirka));
+        int petr = evidence.pridatZakaznika("Petr", "3333333333333");
+        uloz.pridejZakaznika(evidence.getZakaznik().get(petr));
+        int tomas = evidence.pridatZakaznika("Tomáš", "444444444");
+        uloz.pridejZakaznika(evidence.getZakaznik().get(tomas));
+
+        int kolo = evidence.pridatZakazku(1, "Kolo", 500, LocalDate.of(2026, 12, 10));
+        uloz.ulozZakazku(evidence.getZakazka().get(kolo));
+        int auto = evidence.pridatZakazku(2, "auto", 8000, LocalDate.of(2026, 12, 10));
+        uloz.ulozZakazku(evidence.getZakazka().get(auto));
+        int motorka = evidence.pridatZakazku(3, "motorka", 12000, LocalDate.of(2026, 12, 10));
+        uloz.ulozZakazku(evidence.getZakazka().get(motorka));
+        int kolobezka = evidence.pridatZakazku(4, "koloběžka", 2000, LocalDate.of(2026, 12, 10));
+        uloz.ulozZakazku(evidence.getZakazka().get(kolobezka));
+
+        evidence.zrusZakazku(2);
+        uloz.odeberZakazku(2);
+        evidence.zrusZakaznika(2);
+        uloz.odeberZakaznika(2);
+
+        Map<Integer, Zakaznik> nacteneZakaznici = uloz.nactiZakazniky();
+        Map<Integer, Zakazka> nacteneZakazky = uloz.nactiZakazky(nacteneZakaznici);
+        assertEquals(3, nacteneZakaznici.size());
+        assertEquals(3, nacteneZakazky.size());
+        assertFalse(evidence.getZakazka().containsKey(2));
+        assertFalse(evidence.getZakaznik().containsKey(2));
+
+        Evidence druha = new Evidence(uloz, Clock.systemDefaultZone());
 
         assertEquals(3, druha.getZakazka().size());
+        assertEquals(3, druha.getZakaznik().size());
         assertFalse(druha.getZakazka().containsKey(2));
+        assertFalse(druha.getZakaznik().containsKey(2));
         assertEquals("Pepa", druha.getZakazka().get(1).getJmeno());
 
-        int id = druha.pridatZakazku("Franta", "pračka", 2000, LocalDate.of(2026, 12, 10));
+        int id = druha.pridatZakazku(1, "pračka", 2000, LocalDate.of(2026, 12, 10));
         assertEquals(5, id);
+        int id2 = druha.pridatZakaznika("Petr", "444444444444");
+        assertEquals(5, id2);
     }
     @Test
     void neexistujiciSoubor (@TempDir Path slozka) {
-        Path soubor = slozka.resolve("neexistuje.csv");
-        SouboroveUloziste uloziste = new SouboroveUloziste(soubor);
+        Path soubor1 = slozka.resolve("neexistuje1.csv");
+        Path soubor2 = slozka.resolve("neexistuje2.csv");
+        SouboroveUloziste uloziste = new SouboroveUloziste(soubor1, soubor2);
         Evidence evidence = new Evidence(uloziste, Clock.systemDefaultZone());
         assertEquals(0, evidence.getZakazka().size());
     }
