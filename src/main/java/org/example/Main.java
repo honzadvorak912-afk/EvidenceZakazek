@@ -5,6 +5,8 @@ import java.time.Clock;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class Main {
@@ -21,7 +23,6 @@ public class Main {
             e.printStackTrace();
             return;
         }
-
         while (bezi) {
             vypisMenu();
             try {
