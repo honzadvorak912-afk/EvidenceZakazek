@@ -1,15 +1,10 @@
 package org.example;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.Clock;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class Evidence {
     private Map<Integer, Zakazka> zakazka = new HashMap<>();
@@ -124,9 +119,9 @@ public class Evidence {
 
     public List<Zakazka> zakazkyPoTerminu() {
         return zakazka.values().stream()
-                .filter(z -> z.getOdevzdani().isBefore(LocalDate.now(hodiny))
-                        && z.getStav() != Stav.ZAPLACENO
-                        && z.getStav() != Stav.HOTOVO)
+                .filter(a -> a.getOdevzdani().isBefore(LocalDate.now(hodiny))
+                        && a.getStav() != Stav.ZAPLACENO
+                        && a.getStav() != Stav.HOTOVO)
                 .toList();
     }
 
