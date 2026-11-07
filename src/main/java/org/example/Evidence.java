@@ -1,11 +1,7 @@
 package org.example;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.time.Clock;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -102,13 +98,10 @@ public class Evidence {
     }
 
     public int soucetCenHotovychZakazek() {
-        int vydelano = 0;
-        for (Zakazka z : zakazka.values()) {
-            if (z.getStav() == Stav.HOTOVO) {
-                vydelano = vydelano + z.getCena();
-            }
-        }
-        return vydelano;
+        return zakazka.values().stream()
+                .filter(a -> a.getStav() == Stav.HOTOVO)
+                .mapToInt(a -> a.getCena())
+                .sum();
     }
 
     public int soucetZakazekPoTerminu() {
@@ -125,15 +118,11 @@ public class Evidence {
     }
 
     public List<Zakazka> zakazkyPoTerminu() {
-        List<Zakazka> vysledek = new ArrayList<>();
-        for (Zakazka z : zakazka.values()) {
-            if (z.getOdevzdani().isBefore(LocalDate.now(hodiny))
-                    && z.getStav() != Stav.ZAPLACENO
-                    && z.getStav() != Stav.HOTOVO) {
-                vysledek.add(z);
-            }
-        }
-        return vysledek;
+        return zakazka.values().stream()
+                .filter(a -> a.getOdevzdani().isBefore(LocalDate.now(hodiny))
+                        && a.getStav() != Stav.ZAPLACENO
+                        && a.getStav() != Stav.HOTOVO)
+                .toList();
     }
 
     public boolean zrusZakaznika(int id) {

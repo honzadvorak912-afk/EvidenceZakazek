@@ -11,17 +11,15 @@ public class Main {
     static void main(String[] args) {
         boolean bezi = true;
         int vydelano;
-        //Uloz uloz = new SouboroveUloziste(Path.of("zakazky.csv"), Path.of("zakaznici.csv"));
-        Uloz uloz = new DatabazoveUloziste("jdbc:mysql://localhost:3306/evidence", "root", "");
+        Uloz uloz = new SouboroveUloziste(Path.of("zakazky.csv"), Path.of("zakaznici.csv"));
+        //Uloz uloz = new DatabazoveUloziste("jdbc:mysql://localhost:3306/evidence", "root", "");
         Evidence evidence;
         try {
             evidence = new Evidence(uloz, Clock.systemDefaultZone());
         } catch (IllegalStateException | IllegalArgumentException e) {
             IO.println(e.getMessage());
-            e.printStackTrace();
             return;
         }
-
         while (bezi) {
             vypisMenu();
             try {
